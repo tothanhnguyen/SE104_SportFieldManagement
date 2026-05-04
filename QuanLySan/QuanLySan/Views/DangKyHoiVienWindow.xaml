@@ -13,6 +13,7 @@
     WindowStyle="None"
     AllowsTransparency="True">
 
+
     <Window.Resources>
         <SolidColorBrush x:Key="PrimaryBrush" Color="#1B2A4A"/>
         <SolidColorBrush x:Key="TextPrimary" Color="#222222"/>
@@ -58,12 +59,12 @@
                                     <Border x:Name="BaseBorder" Background="Transparent"/>
                                     <ScrollViewer x:Name="PART_ContentHost" Margin="2,0,0,0" VerticalAlignment="Center"/>
                                     <TextBlock x:Name="TextPrompt" 
-                                           Text="{Binding Tag, RelativeSource={RelativeSource AncestorType=DatePicker}}" 
-                                           Foreground="Gray" 
-                                           IsHitTestVisible="False" 
-                                           VerticalAlignment="Center" 
-                                           Margin="5,0,0,0" 
-                                           Visibility="Collapsed"/>
+                                       Text="{Binding Tag, RelativeSource={RelativeSource AncestorType=DatePicker}}" 
+                                       Foreground="Gray" 
+                                       IsHitTestVisible="False" 
+                                       VerticalAlignment="Center" 
+                                       Margin="5,0,0,0" 
+                                       Visibility="Collapsed"/>
                                 </Grid>
                                 <ControlTemplate.Triggers>
                                     <DataTrigger Binding="{Binding Text, RelativeSource={RelativeSource Self}}" Value="">
@@ -75,6 +76,37 @@
                     </Setter>
                 </Style>
             </Style.Resources>
+        </Style>
+
+        <Style x:Key="PlaceholderTextBox" TargetType="{x:Type TextBox}" BasedOn="{StaticResource SimpleTextBox}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type TextBox}">
+                        <Grid>
+                            <Border x:Name="border" 
+                                BorderBrush="{TemplateBinding BorderBrush}" 
+                                BorderThickness="{TemplateBinding BorderThickness}" 
+                                Background="{TemplateBinding Background}" 
+                                SnapsToDevicePixels="True">
+                                <ScrollViewer x:Name="PART_ContentHost" Focusable="false" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden" VerticalAlignment="Center"/>
+                            </Border>
+
+                            <TextBlock x:Name="placeholder" 
+                                   Text="{TemplateBinding Tag}" 
+                                   Foreground="#888888" 
+                                   Margin="7,0,0,0" 
+                                   IsHitTestVisible="False" 
+                                   VerticalAlignment="Center" 
+                                   Visibility="Collapsed"/>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="Text" Value="">
+                                <Setter TargetName="placeholder" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
     </Window.Resources>
 
@@ -123,7 +155,12 @@
 
                         <StackPanel Grid.Column="0">
                             <TextBlock Text="Mã hội viên" Style="{StaticResource FieldLabel}"/>
-                            <TextBox Text="{Binding MaHoiVien}" Style="{StaticResource SimpleTextBox}" IsReadOnly="True" Background="#EFEFEF" Foreground="#555" FontWeight="Bold"/>
+                            <TextBox Text="{Binding MaHoiVien}" 
+                                     Style="{StaticResource PlaceholderTextBox}" 
+                                     Tag="&lt; Giá trị phát sinh &gt;"
+                                     IsReadOnly="True" 
+                                     Background="#EFEFEF" 
+                                     Foreground="#555"/>
                         </StackPanel>
                         <StackPanel Grid.Column="2">
                             <TextBlock Text="Họ tên hội viên" Style="{StaticResource FieldLabel}"/>
@@ -178,7 +215,10 @@
                         </StackPanel>
                         <StackPanel Grid.Column="4">
                             <TextBlock Text="Loại hội viên" Style="{StaticResource FieldLabel}"/>
-                            <TextBox Text="Đồng" Style="{StaticResource SimpleTextBox}" IsReadOnly="True" Background="#EFEFEF"/>
+                            <TextBox Text="Đồng" 
+                                     Style="{StaticResource SimpleTextBox}" 
+                                     IsReadOnly="True" 
+                                     Background="#EFEFEF"/>
                         </StackPanel>
                     </Grid>
 
