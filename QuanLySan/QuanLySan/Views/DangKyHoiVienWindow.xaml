@@ -208,11 +208,26 @@
                         <TextBox Style="{StaticResource SimpleTextBox}" Height="70" VerticalContentAlignment="Top" 
                                  TextWrapping="Wrap" AcceptsReturn="True" Padding="8"/>
                     </StackPanel>
+                    <Grid Margin="0,0,0,25">
+                        <Button Content="THOÁT" 
+                        Style="{StaticResource SimpleButton}" 
+                        Background="#E0E0E0" 
+                        Foreground="#333" 
+                        HorizontalAlignment="Left"/>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                            <Button Content="LÀM MỚI" 
+                            Style="{StaticResource SimpleButton}" 
+                            Background="#E0E0E0" 
+                            Foreground="#333" 
+                            Margin="0,0,10,0"/>
 
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                        <Button Content="LÀM MỚI" Style="{StaticResource SimpleButton}" Background="#E0E0E0" Foreground="#333" Margin="0,0,10,0"/>
-                        <Button Content="ĐĂNG KÝ" Style="{StaticResource SimpleButton}" Background="{StaticResource PrimaryBrush}" Foreground="White" FontWeight="Bold"/>
-                    </StackPanel>
+                            <Button Content="ĐĂNG KÝ" 
+                            Style="{StaticResource SimpleButton}" 
+                            Background="{StaticResource PrimaryBrush}" 
+                            Foreground="White" 
+                            FontWeight="Bold"/> 
+                        </StackPanel>
+                    </Grid>
                 </StackPanel>
             </ScrollViewer>
         </Grid>
