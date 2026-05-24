@@ -1,4 +1,4 @@
-﻿<Window x:Class="QuanLySan.Views.DangKyHoiVienWindow"
+<Window x:Class="QuanLySan.Views.DangKyHoiVienWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Đăng ký hội viên" 
@@ -162,15 +162,11 @@
                         <StackPanel Grid.Column="0">
                             <TextBlock Text="Số điện thoại" Style="{StaticResource FieldLabel}"/>
                             <TextBox Text="{Binding SDT}" Style="{StaticResource PlaceholderTextBox}" Tag="0000.000.000"/>
-                            <TextBlock Text="⚠ SĐT đã tồn tại hoặc không hợp lệ" Foreground="{StaticResource ErrorBrush}" 
-                                       FontSize="11" Margin="0,3,0,0" Visibility="Collapsed"/>
                         </StackPanel>
 
                         <StackPanel Grid.Column="2">
                             <TextBlock Text="Email" Style="{StaticResource FieldLabel}"/>
                             <TextBox Text="{Binding Email}" Style="{StaticResource PlaceholderTextBox}" Tag="VD: nva@gmail.com"/>
-                            <TextBlock Text="⚠ Email đã tồn tại hoặc không hợp lệ" Foreground="{StaticResource ErrorBrush}" 
-                                       FontSize="11" Margin="0,3,0,0" Visibility="Collapsed"/>
                         </StackPanel>
                     </Grid>
 
