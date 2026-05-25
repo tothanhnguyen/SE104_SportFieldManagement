@@ -1,0 +1,132 @@
+﻿<Window x:Class="QuanLySan.Views.TraCuuHoiVien"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:QuanLySan.Views"
+        mc:Ignorable="d"
+        Title="TraCuuHoiVien" Height="600" Width="1200"
+        Background="#EAECEF" FontFamily="Segoe UI">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="50"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0" Background="#1D2E44">
+            <TextBlock Text="Tra cứu hội viên" Foreground="White" FontSize="18" FontWeight="Bold" VerticalAlignment="Center" Margin="20,0,0,0"/>
+            <Button Content="✕" Background="Transparent" BorderThickness="0" Foreground="White" FontSize="20" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,20,0" Cursor="Hand"/>
+        </Grid>
+
+        <StackPanel Grid.Row="1" Margin="15,15,15,10">
+
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1.2*"/>
+                    <ColumnDefinition Width="1.5*"/>
+                    <ColumnDefinition Width="1.2*"/>
+                    <ColumnDefinition Width="1.5*"/>
+                    <ColumnDefinition Width="1.2*"/>
+                    <ColumnDefinition Width="1*"/>
+                    <ColumnDefinition Width="1.5*"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Margin="5,0">
+                    <TextBlock Text="Mã hội viên" Margin="0,0,0,5" FontWeight="SemiBold"/>
+                    <TextBox Height="28"  Foreground="Gray" VerticalContentAlignment="Center" Padding="5,0"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Margin="5,0">
+                    <TextBlock Text="Tên Hội Viên" Margin="0,0,0,5" FontWeight="SemiBold"/>
+                    <TextBox Height="28"  Foreground="Gray" VerticalContentAlignment="Center" Padding="5,0"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="2" Margin="5,0">
+                    <TextBlock Text="SĐT" Margin="0,0,0,5" FontWeight="SemiBold"/>
+                    <TextBox Height="28"  Foreground="Gray" VerticalContentAlignment="Center" Padding="5,0"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="3" Margin="5,0">
+                    <TextBlock Text="Email" Margin="0,0,0,5" FontWeight="SemiBold"/>
+                    <TextBox Height="28"  Foreground="Gray" VerticalContentAlignment="Center" Padding="5,0"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="4" Margin="5,0">
+                    <TextBlock Text="Ghi chú" Margin="0,0,0,5" FontWeight="SemiBold"/>
+                    <TextBox Height="28"  Foreground="Gray" VerticalContentAlignment="Center" Padding="5,0"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="5" Margin="5,0">
+                    <TextBlock Text="Giới tính" Margin="0,0,0,5" FontWeight="SemiBold"/>
+                    <TextBox Height="28"  Foreground="Gray" VerticalContentAlignment="Center" Padding="5,0"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="6" Margin="5,0,0,0">
+                    <TextBlock Text="Tên loại hội viên" Margin="0,0,0,5" FontWeight="SemiBold"/>
+                    <Grid>
+                        <ComboBox Height="28" SelectedIndex="0">
+                            <ComboBoxItem>Đồng</ComboBoxItem>
+                            <ComboBoxItem>Bạc</ComboBoxItem>
+                            <ComboBoxItem>Vàng</ComboBoxItem>
+                            <ComboBoxItem>Kim cương</ComboBoxItem>
+                        </ComboBox>
+                    </Grid>
+                </StackPanel>
+            </Grid>
+
+            <Grid Margin="0,15,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="5,0,37,0">
+                    <TextBlock Text="Điểm tích lũy" VerticalAlignment="Center" Margin="0,0,10,0" FontWeight="SemiBold"/>
+                    <TextBlock Text="từ" Foreground="Red" VerticalAlignment="Center" Margin="0,0,5,0"/>
+                    <TextBox Width="120" Height="28" VerticalContentAlignment="Center"/>
+                    <TextBlock Text="đến" Foreground="Red" VerticalAlignment="Center" Margin="10,0,5,0"/>
+                    <TextBox Width="120" Height="28" VerticalContentAlignment="Center"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="Ngày đăng ký" VerticalAlignment="Center" Margin="0,0,10,0" FontWeight="SemiBold"/>
+                    <TextBlock Text="từ" Foreground="Red" VerticalAlignment="Center" Margin="0,0,5,0"/>
+                    <TextBox Width="120" Height="28" VerticalContentAlignment="Center"/>
+                    <TextBlock Text="đến" Foreground="Red" VerticalAlignment="Center" Margin="10,0,5,0"/>
+                    <TextBox Width="120" Height="28" VerticalContentAlignment="Center"/>
+                </StackPanel>
+            </Grid>
+        </StackPanel>
+
+        <DataGrid Grid.Row="2" Margin="15,10,15,15" AutoGenerateColumns="False" Background="White" 
+                  GridLinesVisibility="All" HorizontalGridLinesBrush="#888888" VerticalGridLinesBrush="#888888"
+                  RowHeight="35" ColumnHeaderHeight="32" BorderBrush="#888888" BorderThickness="1">
+
+            <DataGrid.ColumnHeaderStyle>
+                <Style TargetType="DataGridColumnHeader">
+                    <Setter Property="Background" Value="#F2F2F2"/>
+                    <Setter Property="Foreground" Value="Black"/>
+                    <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                    <Setter Property="FontWeight" Value="SemiBold"/>
+                    <Setter Property="BorderBrush" Value="#CCC"/>
+                    <Setter Property="BorderThickness" Value="0,0,1,1"/>
+                </Style>
+            </DataGrid.ColumnHeaderStyle>
+
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="STT" Width="50" Binding="{Binding STT}"/>
+                <DataGridTemplateColumn Header="Tên Hội Viên" Width="1*"/>
+                <DataGridTemplateColumn Header="SĐT" Width="*"/>
+                <DataGridTemplateColumn Header="Email" Width="1.5*"/>
+                <DataGridTemplateColumn Header="Mã Loại Hội Viên" Width="*"/>
+                <DataGridTemplateColumn Header="Điểm Tích Lũy" Width="*"/>
+                <DataGridTemplateColumn Header="Ngày Đăng Ký" Width="*"/>
+                <DataGridTemplateColumn Header="Giới Tính" Width="80"/>
+                <DataGridTemplateColumn Header="Ghi Chú" Width="*"/>
+            </DataGrid.Columns>
+        </DataGrid>
+    </Grid>
+
+</Window>
