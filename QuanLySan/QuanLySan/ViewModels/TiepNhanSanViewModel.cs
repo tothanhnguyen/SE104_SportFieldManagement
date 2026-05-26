@@ -12,7 +12,7 @@ namespace QuanLySan.ViewModels
 {
     public class TiepNhanSanViewModel : BaseViewModel
     {
-        private string _connectionString = @"Server= localhost;Database=QLSanTheThao;Trusted_Connection=True;TrustServerCertificate=True;";
+        private string _connectionString = DatabaseConfig.ConnectionString;
 
         // Dữ liệu nhập liệu
         private string _maSan = "";

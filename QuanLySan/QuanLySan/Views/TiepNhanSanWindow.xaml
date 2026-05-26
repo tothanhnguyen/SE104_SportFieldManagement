@@ -213,6 +213,7 @@
                                   Style="{StaticResource StyledDataGrid}"
                                   ColumnHeaderStyle="{StaticResource DataGridHeaderStyle}"
                                   Height="180"
+                                  CanUserAddRows="False"
                                   CellEditEnding="DgGioSan_CellEditEnding">
                             <DataGrid.Columns>
                                 <DataGridTextColumn Header="Giờ bắt đầu" Binding="{Binding GioBatDau, UpdateSourceTrigger=PropertyChanged}" Width="*">
@@ -267,6 +268,23 @@
                                         </Style>
                                     </DataGridTextColumn.ElementStyle>
                                 </DataGridTextColumn>
+
+                                <!-- Nút Xóa dòng -->
+                                <DataGridTemplateColumn Header="Xóa" Width="45">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <Button Content="✕"
+                                                    FontSize="12" FontWeight="Bold"
+                                                    Foreground="#D32F2F"
+                                                    Background="Transparent"
+                                                    BorderThickness="0"
+                                                    Cursor="Hand"
+                                                    HorizontalAlignment="Center"
+                                                    Command="{Binding DataContext.XoaGioCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                    CommandParameter="{Binding}"/>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
                             </DataGrid.Columns>
                         </DataGrid>
                     </GroupBox>

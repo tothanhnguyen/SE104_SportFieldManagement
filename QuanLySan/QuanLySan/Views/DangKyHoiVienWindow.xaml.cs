@@ -1,4 +1,4 @@
-﻿using System.Windows;
+using System.Windows;
 using System.Windows.Input;
 
 namespace QuanLySan.Views
@@ -8,6 +8,8 @@ namespace QuanLySan.Views
         public DangKyHoiVienWindow()
         {
             InitializeComponent();
+            // Thiết lập DataContext để liên kết dữ liệu với ViewModel
+            this.DataContext = new QuanLySan.ViewModels.DangKyHoiVienViewModel();
         }
 
         // Kéo thả cửa sổ khi click vào Header

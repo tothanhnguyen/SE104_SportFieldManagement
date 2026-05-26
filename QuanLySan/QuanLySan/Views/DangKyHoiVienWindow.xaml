@@ -123,10 +123,12 @@
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
-            <Border Grid.Row="0" Background="{StaticResource PrimaryBrush}" Padding="20,15" CornerRadius="7,7,0,0">
+            <Border Grid.Row="0" Background="{StaticResource PrimaryBrush}" Padding="20,15" CornerRadius="7,7,0,0"
+                    MouseLeftButtonDown="Header_MouseLeftButtonDown">
                 <Grid>
                     <TextBlock Text="ĐĂNG KÝ HỘI VIÊN MỚI" FontSize="16" FontWeight="Bold" Foreground="White" VerticalAlignment="Center"/>
-                    <Button Content="✕" HorizontalAlignment="Right" Foreground="White" Background="Transparent" BorderThickness="0" FontSize="18" Cursor="Hand"/>
+                    <Button Content="✕" HorizontalAlignment="Right" Foreground="White" Background="Transparent" BorderThickness="0" FontSize="18" Cursor="Hand"
+                            Click="BtnThoat_Click"/>
                 </Grid>
             </Border>
 
@@ -187,7 +189,9 @@
 
                         <StackPanel Grid.Column="2">
                             <TextBlock Text="Giới tính" Style="{StaticResource FieldLabel}"/>
-                            <ComboBox Style="{StaticResource SimpleComboBox}">
+                            <ComboBox Style="{StaticResource SimpleComboBox}"
+                                     SelectedValue="{Binding GioiTinh, Mode=TwoWay}"
+                                     SelectedValuePath="Content">
                                 <ComboBoxItem Content="Nam" IsSelected="True"/>
                                 <ComboBoxItem Content="Nữ"/>
                             </ComboBox>
@@ -201,7 +205,8 @@
 
                     <StackPanel Margin="0,0,0,25">
                         <TextBlock Text="Ghi chú" Style="{StaticResource FieldLabel}"/>
-                        <TextBox Style="{StaticResource SimpleTextBox}" Height="70" VerticalContentAlignment="Top" 
+                        <TextBox Text="{Binding GhiChu, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource SimpleTextBox}" Height="70" VerticalContentAlignment="Top" 
                                  TextWrapping="Wrap" AcceptsReturn="True" Padding="8"/>
                     </StackPanel>
                     <Grid Margin="0,0,0,25">
@@ -209,19 +214,22 @@
                         Style="{StaticResource SimpleButton}" 
                         Background="#E0E0E0" 
                         Foreground="#333" 
-                        HorizontalAlignment="Left"/>
+                        HorizontalAlignment="Left"
+                        Click="BtnThoat_Click"/>
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                             <Button Content="LÀM MỚI" 
                             Style="{StaticResource SimpleButton}" 
                             Background="#E0E0E0" 
                             Foreground="#333" 
-                            Margin="0,0,10,0"/>
+                            Margin="0,0,10,0"
+                            Command="{Binding LamMoiCommand}"/>
 
                             <Button Content="ĐĂNG KÝ" 
                             Style="{StaticResource SimpleButton}" 
                             Background="{StaticResource PrimaryBrush}" 
                             Foreground="White" 
-                            FontWeight="Bold"/> 
+                            FontWeight="Bold"
+                            Command="{Binding DangKyCommand}"/> 
                         </StackPanel>
                     </Grid>
                 </StackPanel>

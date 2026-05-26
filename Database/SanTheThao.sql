@@ -57,7 +57,34 @@ CREATE TABLE CHITIETDATSAN (
 );
 GO
 
--- 8. Chèn dữ liệu danh mục ban đầu
+-- 8. Bảng Loại Hội Viên
+CREATE TABLE LOAIHOIVIEN (
+    MaLoaiHoiVien CHAR(2) PRIMARY KEY, -- DO (Đồng), BA (Bạc), VA (Vàng), KC (Kim cương)
+    TenLoaiHoiVien NVARCHAR(50) NOT NULL,
+    DiemToiThieu INT DEFAULT 0
+);
+
+-- 9. Bảng Hội Viên
+CREATE TABLE HOIVIEN (
+    MaHoiVien VARCHAR(20) PRIMARY KEY,
+    HoTen NVARCHAR(100) NOT NULL,
+    SDT VARCHAR(20) NOT NULL UNIQUE,
+    Email VARCHAR(100) NOT NULL UNIQUE,
+    GioiTinh NVARCHAR(10),
+    NgayDangKyHoiVien DATE,
+    DiemTichLuy INT DEFAULT 0,
+    MaLoaiHoiVien CHAR(2) REFERENCES LOAIHOIVIEN(MaLoaiHoiVien),
+    GhiChu NVARCHAR(MAX)
+);
+GO
+
+-- 12. Chèn dữ liệu danh mục ban đầu
+INSERT INTO LOAIHOIVIEN (MaLoaiHoiVien, TenLoaiHoiVien, DiemToiThieu) VALUES 
+('DO', N'Đồng', 0),
+('BA', N'Bạc', 1000),
+('VA', N'Vàng', 5000),
+('KC', N'Kim cương', 10000);
+
 INSERT INTO LOAISAN (MaLoaiSan, TenLoaiSan) VALUES 
 ('BD', N'Sân bóng đá'), 
 ('CL', N'Sân cầu lông'), 
