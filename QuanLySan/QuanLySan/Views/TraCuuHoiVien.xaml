@@ -35,32 +35,32 @@
 
                 <StackPanel Grid.Column="0" Margin="5,0">
                     <TextBlock Text="Mã hội viên" Margin="0,0,0,5" FontWeight="SemiBold"/>
-                    <TextBox Height="28"  Foreground="Gray" VerticalContentAlignment="Center" Padding="5,0"/>
+                    <TextBox Height="28" Foreground="Gray" VerticalContentAlignment="Center" Padding="5,0"/>
                 </StackPanel>
 
                 <StackPanel Grid.Column="1" Margin="5,0">
                     <TextBlock Text="Tên Hội Viên" Margin="0,0,0,5" FontWeight="SemiBold"/>
-                    <TextBox Height="28"  Foreground="Gray" VerticalContentAlignment="Center" Padding="5,0"/>
+                    <TextBox Height="28" Foreground="Gray" VerticalContentAlignment="Center" Padding="5,0"/>
                 </StackPanel>
 
                 <StackPanel Grid.Column="2" Margin="5,0">
                     <TextBlock Text="SĐT" Margin="0,0,0,5" FontWeight="SemiBold"/>
-                    <TextBox Height="28"  Foreground="Gray" VerticalContentAlignment="Center" Padding="5,0"/>
+                    <TextBox Height="28" Foreground="Gray" VerticalContentAlignment="Center" Padding="5,0"/>
                 </StackPanel>
 
                 <StackPanel Grid.Column="3" Margin="5,0">
                     <TextBlock Text="Email" Margin="0,0,0,5" FontWeight="SemiBold"/>
-                    <TextBox Height="28"  Foreground="Gray" VerticalContentAlignment="Center" Padding="5,0"/>
+                    <TextBox Height="28" Foreground="Gray" VerticalContentAlignment="Center" Padding="5,0"/>
                 </StackPanel>
 
                 <StackPanel Grid.Column="4" Margin="5,0">
                     <TextBlock Text="Ghi chú" Margin="0,0,0,5" FontWeight="SemiBold"/>
-                    <TextBox Height="28"  Foreground="Gray" VerticalContentAlignment="Center" Padding="5,0"/>
+                    <TextBox Height="28" Foreground="Gray" VerticalContentAlignment="Center" Padding="5,0"/>
                 </StackPanel>
 
                 <StackPanel Grid.Column="5" Margin="5,0">
                     <TextBlock Text="Giới tính" Margin="0,0,0,5" FontWeight="SemiBold"/>
-                    <TextBox Height="28"  Foreground="Gray" VerticalContentAlignment="Center" Padding="5,0"/>
+                    <TextBox Height="28" Foreground="Gray" VerticalContentAlignment="Center" Padding="5,0"/>
                 </StackPanel>
 
                 <StackPanel Grid.Column="6" Margin="5,0,0,0">
@@ -76,13 +76,15 @@
                 </StackPanel>
             </Grid>
 
-            <Grid Margin="0,15,0,0">
+            <Grid Margin="0,15,5,0">
                 <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
-                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="5,0,37,0">
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="5,0,40,0">
                     <TextBlock Text="Điểm tích lũy" VerticalAlignment="Center" Margin="0,0,10,0" FontWeight="SemiBold"/>
                     <TextBlock Text="từ" Foreground="Red" VerticalAlignment="Center" Margin="0,0,5,0"/>
                     <TextBox Width="120" Height="28" VerticalContentAlignment="Center"/>
@@ -97,7 +99,13 @@
                     <TextBlock Text="đến" Foreground="Red" VerticalAlignment="Center" Margin="10,0,5,0"/>
                     <TextBox Width="120" Height="28" VerticalContentAlignment="Center"/>
                 </StackPanel>
+
+                <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button Content="Tra cứu" Width="100" Height="32" Background="#1B2A4A" Foreground="White" FontWeight="Bold" BorderThickness="0" Cursor="Hand" Margin="0,0,15,0"/>
+                    <Button Content="Thoát" Width="100" Height="32" Background="#E0E0E0" Foreground="#333" FontWeight="Bold" BorderThickness="0" Cursor="Hand" Click="Button_Click"/>
+                </StackPanel>
             </Grid>
+
         </StackPanel>
 
         <DataGrid Grid.Row="2" Margin="15,10,15,15" AutoGenerateColumns="False" Background="White" 
@@ -128,5 +136,4 @@
             </DataGrid.Columns>
         </DataGrid>
     </Grid>
-
 </Window>
