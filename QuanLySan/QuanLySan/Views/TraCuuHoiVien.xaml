@@ -17,7 +17,8 @@
 
         <Grid Grid.Row="0" Background="#1D2E44">
             <TextBlock Text="Tra cứu hội viên" Foreground="White" FontSize="18" FontWeight="Bold" VerticalAlignment="Center" Margin="20,0,0,0"/>
-            <Button Content="✕" Background="Transparent" BorderThickness="0" Foreground="White" FontSize="20" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,20,0" Cursor="Hand"/>
+            <Button Content="✕" Background="Transparent" BorderThickness="0" Foreground="White" FontSize="20" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,20,0" Cursor="Hand"
+                    Click="BtnThoat_Click"/>
         </Grid>
 
         <StackPanel Grid.Row="1" Margin="15,15,15,10">
@@ -35,38 +36,48 @@
 
                 <StackPanel Grid.Column="0" Margin="5,0">
                     <TextBlock Text="Mã hội viên" Margin="0,0,0,5" FontWeight="SemiBold"/>
-                    <TextBox Height="28"  Foreground="Gray" VerticalContentAlignment="Center" Padding="5,0"/>
+                    <TextBox x:Name="txtMaHoiVien" Tag="MaHoiVien" Height="28" Foreground="Black" VerticalContentAlignment="Center" Padding="5,0"
+                             TextChanged="OnSearchBoxTextChanged"/>
                 </StackPanel>
 
                 <StackPanel Grid.Column="1" Margin="5,0">
                     <TextBlock Text="Tên Hội Viên" Margin="0,0,0,5" FontWeight="SemiBold"/>
-                    <TextBox Height="28"  Foreground="Gray" VerticalContentAlignment="Center" Padding="5,0"/>
+                    <TextBox x:Name="txtTenHoiVien" Tag="HoTen" Height="28" Foreground="Black" VerticalContentAlignment="Center" Padding="5,0"
+                             TextChanged="OnSearchBoxTextChanged"/>
                 </StackPanel>
 
                 <StackPanel Grid.Column="2" Margin="5,0">
                     <TextBlock Text="SĐT" Margin="0,0,0,5" FontWeight="SemiBold"/>
-                    <TextBox Height="28"  Foreground="Gray" VerticalContentAlignment="Center" Padding="5,0"/>
+                    <TextBox x:Name="txtSDT" Tag="SDT" Height="28" Foreground="Black" VerticalContentAlignment="Center" Padding="5,0"
+                             TextChanged="OnSearchBoxTextChanged"/>
                 </StackPanel>
 
                 <StackPanel Grid.Column="3" Margin="5,0">
                     <TextBlock Text="Email" Margin="0,0,0,5" FontWeight="SemiBold"/>
-                    <TextBox Height="28"  Foreground="Gray" VerticalContentAlignment="Center" Padding="5,0"/>
+                    <TextBox x:Name="txtEmail" Tag="Email" Height="28" Foreground="Black" VerticalContentAlignment="Center" Padding="5,0"
+                             TextChanged="OnSearchBoxTextChanged"/>
                 </StackPanel>
 
                 <StackPanel Grid.Column="4" Margin="5,0">
                     <TextBlock Text="Ghi chú" Margin="0,0,0,5" FontWeight="SemiBold"/>
-                    <TextBox Height="28"  Foreground="Gray" VerticalContentAlignment="Center" Padding="5,0"/>
+                    <TextBox x:Name="txtGhiChu" Tag="GhiChu" Height="28" Foreground="Black" VerticalContentAlignment="Center" Padding="5,0"
+                             TextChanged="OnSearchBoxTextChanged"/>
                 </StackPanel>
 
                 <StackPanel Grid.Column="5" Margin="5,0">
                     <TextBlock Text="Giới tính" Margin="0,0,0,5" FontWeight="SemiBold"/>
-                    <TextBox Height="28"  Foreground="Gray" VerticalContentAlignment="Center" Padding="5,0"/>
+                    <ComboBox x:Name="cboGioiTinh" Height="28" SelectedIndex="0">
+                        <ComboBoxItem>Tất cả</ComboBoxItem>
+                        <ComboBoxItem>Nam</ComboBoxItem>
+                        <ComboBoxItem>Nữ</ComboBoxItem>
+                    </ComboBox>
                 </StackPanel>
 
                 <StackPanel Grid.Column="6" Margin="5,0,0,0">
                     <TextBlock Text="Tên loại hội viên" Margin="0,0,0,5" FontWeight="SemiBold"/>
                     <Grid>
-                        <ComboBox Height="28" SelectedIndex="0">
+                        <ComboBox x:Name="cboLoaiHoiVien" Height="28" SelectedIndex="0">
+                            <ComboBoxItem>Tất cả</ComboBoxItem>
                             <ComboBoxItem>Đồng</ComboBoxItem>
                             <ComboBoxItem>Bạc</ComboBoxItem>
                             <ComboBoxItem>Vàng</ComboBoxItem>
@@ -85,22 +96,30 @@
                 <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="5,0,37,0">
                     <TextBlock Text="Điểm tích lũy" VerticalAlignment="Center" Margin="0,0,10,0" FontWeight="SemiBold"/>
                     <TextBlock Text="từ" Foreground="Red" VerticalAlignment="Center" Margin="0,0,5,0"/>
-                    <TextBox Width="120" Height="28" VerticalContentAlignment="Center"/>
+                    <TextBox x:Name="txtDiemTu" Width="120" Height="28" VerticalContentAlignment="Center"/>
                     <TextBlock Text="đến" Foreground="Red" VerticalAlignment="Center" Margin="10,0,5,0"/>
-                    <TextBox Width="120" Height="28" VerticalContentAlignment="Center"/>
+                    <TextBox x:Name="txtDiemDen" Width="120" Height="28" VerticalContentAlignment="Center"/>
                 </StackPanel>
 
                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                     <TextBlock Text="Ngày đăng ký" VerticalAlignment="Center" Margin="0,0,10,0" FontWeight="SemiBold"/>
                     <TextBlock Text="từ" Foreground="Red" VerticalAlignment="Center" Margin="0,0,5,0"/>
-                    <TextBox Width="120" Height="28" VerticalContentAlignment="Center"/>
+                    <TextBox x:Name="txtNgayTu" Width="120" Height="28" VerticalContentAlignment="Center"/>
                     <TextBlock Text="đến" Foreground="Red" VerticalAlignment="Center" Margin="10,0,5,0"/>
-                    <TextBox Width="120" Height="28" VerticalContentAlignment="Center"/>
+                    <TextBox x:Name="txtNgayDen" Width="120" Height="28" VerticalContentAlignment="Center"/>
                 </StackPanel>
             </Grid>
+
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">
+                <Button x:Name="btnLamMoi" Content="Làm mới" Width="110" Height="32" Margin="0,0,10,0" Cursor="Hand"
+                        Background="#E0E0E0" Foreground="#333" BorderThickness="0" Click="BtnLamMoi_Click"/>
+                <Button x:Name="btnTimKiem" Content="🔍 Tìm kiếm" Width="130" Height="32" Cursor="Hand"
+                        Background="#1D2E44" Foreground="White" FontWeight="Bold" BorderThickness="0" Click="BtnTimKiem_Click"/>
+            </StackPanel>
         </StackPanel>
 
-        <DataGrid Grid.Row="2" Margin="15,10,15,15" AutoGenerateColumns="False" Background="White" 
+        <DataGrid x:Name="dgHoiVien" Grid.Row="2" Margin="15,10,15,15" AutoGenerateColumns="False" Background="White"
+                  IsReadOnly="True" CanUserAddRows="False"
                   GridLinesVisibility="All" HorizontalGridLinesBrush="#888888" VerticalGridLinesBrush="#888888"
                   RowHeight="35" ColumnHeaderHeight="32" BorderBrush="#888888" BorderThickness="1">
 
@@ -117,16 +136,24 @@
 
             <DataGrid.Columns>
                 <DataGridTextColumn Header="STT" Width="50" Binding="{Binding STT}"/>
-                <DataGridTemplateColumn Header="Tên Hội Viên" Width="1*"/>
-                <DataGridTemplateColumn Header="SĐT" Width="*"/>
-                <DataGridTemplateColumn Header="Email" Width="1.5*"/>
-                <DataGridTemplateColumn Header="Mã Loại Hội Viên" Width="*"/>
-                <DataGridTemplateColumn Header="Điểm Tích Lũy" Width="*"/>
-                <DataGridTemplateColumn Header="Ngày Đăng Ký" Width="*"/>
-                <DataGridTemplateColumn Header="Giới Tính" Width="80"/>
-                <DataGridTemplateColumn Header="Ghi Chú" Width="*"/>
+                <DataGridTextColumn Header="Tên Hội Viên" Width="1.5*" Binding="{Binding HoTen}"/>
+                <DataGridTextColumn Header="SĐT" Width="*" Binding="{Binding SDT}"/>
+                <DataGridTextColumn Header="Email" Width="1.5*" Binding="{Binding Email}"/>
+                <DataGridTextColumn Header="Loại Hội Viên" Width="*" Binding="{Binding TenLoaiHoiVien}"/>
+                <DataGridTextColumn Header="Điểm Tích Lũy" Width="*" Binding="{Binding DiemTichLuy}"/>
+                <DataGridTextColumn Header="Ngày Đăng Ký" Width="*" Binding="{Binding NgayDangKy, StringFormat=dd/MM/yyyy}"/>
+                <DataGridTextColumn Header="Giới Tính" Width="80" Binding="{Binding GioiTinh}"/>
+                <DataGridTextColumn Header="Ghi Chú" Width="*" Binding="{Binding GhiChu}"/>
             </DataGrid.Columns>
         </DataGrid>
+
+        <!-- Popup gợi ý <có chứa> dùng chung cho các ô tìm kiếm dạng văn bản -->
+        <Popup x:Name="popupGoiY" Placement="Bottom" StaysOpen="False" AllowsTransparency="True">
+            <Border Background="White" BorderBrush="#888888" BorderThickness="1" CornerRadius="2">
+                <ListBox x:Name="lstGoiY" MaxHeight="180" MinWidth="150" BorderThickness="0"
+                         SelectionChanged="LstGoiY_SelectionChanged"/>
+            </Border>
+        </Popup>
     </Grid>
 
 </Window>
