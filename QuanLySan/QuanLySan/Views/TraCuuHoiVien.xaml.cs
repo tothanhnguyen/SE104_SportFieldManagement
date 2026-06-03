@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using Microsoft.Data.SqlClient;
 using QuanLySan.Models;
 
@@ -28,6 +29,11 @@ namespace QuanLySan.Views
         // ====================== SỰ KIỆN NÚT ======================
 
         private void BtnThoat_Click(object sender, RoutedEventArgs e) => Close();
+
+        private void Header_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.ChangedButton == MouseButton.Left) DragMove();
+        }
 
         private void BtnTimKiem_Click(object sender, RoutedEventArgs e) => ThucHienTimKiem();
 
