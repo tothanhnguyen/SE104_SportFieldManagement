@@ -78,12 +78,34 @@ CREATE TABLE HOIVIEN (
 );
 GO
 
+-- 10. Bảng Phiếu Đặt Sân (Sprint 4 - BM4: Thông tin đặt sân)
+CREATE TABLE PHIEUDATSAN (
+    MaPhieuDat VARCHAR(20) PRIMARY KEY,
+    MaSan VARCHAR(20) REFERENCES SAN(MaSan),
+    MaHoiVien VARCHAR(20) REFERENCES HOIVIEN(MaHoiVien),
+    NgayDat DATE NOT NULL,
+    TongTien MONEY DEFAULT 0,
+    GhiChu NVARCHAR(MAX)
+);
+
+-- 11. Bảng Chi Tiết Phiếu Đặt (danh sách khung giờ đặt của 1 phiếu)
+CREATE TABLE CHITIETPHIEUDAT (
+    MaChiTiet INT IDENTITY(1,1) PRIMARY KEY,
+    MaPhieuDat VARCHAR(20) REFERENCES PHIEUDATSAN(MaPhieuDat),
+    GioBatDau TIME NOT NULL,
+    GioKetThuc TIME NOT NULL,
+    MaLoaiNgay CHAR(2) REFERENCES LOAINGAY(MaLoaiNgay),
+    DonGia MONEY
+);
+GO
+
 -- 12. Chèn dữ liệu danh mục ban đầu
-INSERT INTO LOAIHOIVIEN (MaLoaiHoiVien, TenLoaiHoiVien, DiemToiThieu) VALUES 
+-- Theo Quy định 2: 4 loại hội viên với mức điểm tích luỹ tối thiểu lần lượt 0, 100, 200, 300
+INSERT INTO LOAIHOIVIEN (MaLoaiHoiVien, TenLoaiHoiVien, DiemToiThieu) VALUES
 ('DO', N'Đồng', 0),
-('BA', N'Bạc', 1000),
-('VA', N'Vàng', 5000),
-('KC', N'Kim cương', 10000);
+('BA', N'Bạc', 100),
+('VA', N'Vàng', 200),
+('KC', N'Kim cương', 300);
 
 INSERT INTO LOAISAN (MaLoaiSan, TenLoaiSan) VALUES 
 ('BD', N'Sân bóng đá'), 
