@@ -111,7 +111,7 @@
             </Border>
 
             <!-- ===== CONTENT ===== -->
-            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="20,14,20,16">
+            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="20,14,20,16" Margin="0,0,0,-17">
                 <StackPanel>
 
                     <!-- ── ROW 1: Mã đặt sân | Tên sân ── -->
@@ -134,38 +134,49 @@
                         </StackPanel>
                     </Grid>
 
-                    <!-- ── ROW 2: Họ tên hội viên | Ngày đặt ── -->
+                    <!-- ── ROW 2: Ngày đặt | Mã hội viên | Tên hội viên ── -->
                     <Grid Margin="0,0,0,12">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="2*"/>
+                            <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="14"/>
                             <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="14"/>
+                            <ColumnDefinition Width="2*"/>
                         </Grid.ColumnDefinitions>
 
-                        <StackPanel Grid.Column="0">
-                            <TextBlock Text="Họ tên hội viên" Style="{StaticResource FieldLabel}"/>
-                            <ComboBox ItemsSource="{Binding DsHoiVien}" SelectedItem="{Binding HoiVienSelected, Mode=TwoWay}"
-                                      DisplayMemberPath="HoTen" IsEditable="True" IsTextSearchEnabled="True"
-                                      Style="{StaticResource SimpleComboBox}"/>
-                        </StackPanel>
-
-                        <StackPanel Grid.Column="2">
+                        <StackPanel Grid.Column="0" MinWidth="140">
                             <TextBlock Text="Ngày đặt" Style="{StaticResource FieldLabel}"/>
                             <DatePicker SelectedDate="{Binding NgayDat}" Height="28" VerticalContentAlignment="Center"/>
                         </StackPanel>
+
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Text="Mã hội viên" Style="{StaticResource FieldLabel}"/>
+                            <TextBox Style="{StaticResource SimpleTextBox}" Text="{Binding MaHoiVien, UpdateSourceTrigger=PropertyChanged}"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="4">
+                            <TextBlock Text="Tên hội viên" Style="{StaticResource FieldLabel}"/>
+                            <TextBox Text="{Binding HoiVienSelected.HoTen}" Style="{StaticResource SimpleTextBox}" IsReadOnly="True" Background="#F0F0F0"/>
+                        </StackPanel>
                     </Grid>
 
-                    <!-- ── ROW 3: Ghi chú | Tổng tiền ── -->
+                    <!-- ── ROW 3: Ghi chú (full width) ── -->
+                    <StackPanel Margin="0,0,0,12">
+                        <TextBlock Text="Ghi chú" Style="{StaticResource FieldLabel}"/>
+                        <TextBox Text="{Binding GhiChu}" Style="{StaticResource SimpleTextBox}" MinHeight="50" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" VerticalContentAlignment="Top" Padding="6,6" Height="13"/>
+                    </StackPanel>
+
+                    <!-- ── ROW 4: Mã chi tiết đặt sân | Tổng tiền ── -->
                     <Grid Margin="0,0,0,12">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="2*"/>
+                            <ColumnDefinition Width="3*"/>
                             <ColumnDefinition Width="14"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
 
                         <StackPanel Grid.Column="0">
-                            <TextBlock Text="Ghi chú" Style="{StaticResource FieldLabel}"/>
-                            <TextBox Text="{Binding GhiChu}" Style="{StaticResource SimpleTextBox}"/>
+                            <TextBlock Text="Mã chi tiết đặt sân" Style="{StaticResource FieldLabel}"/>
+                            <TextBox Style="{StaticResource SimpleTextBox}" IsReadOnly="True" Background="#F0F0F0"/>
                         </StackPanel>
 
                         <StackPanel Grid.Column="2">
@@ -175,7 +186,7 @@
                         </StackPanel>
                     </Grid>
 
-                    <!-- ── GROUPBOX: Giờ đặt ── -->
+                    <!-- ── GROUPBOX: Khung giờ đặt ── -->
                     <GroupBox Margin="0,4,0,16" Padding="12,8,12,12"
                               BorderBrush="{StaticResource PrimaryBrush}" BorderThickness="1.5">
                         <GroupBox.Header>
@@ -190,6 +201,7 @@
                                   CellEditEnding="DgGioDat_CellEditEnding">
                             <DataGrid.Columns>
                                 <DataGridTextColumn Header="STT" Binding="{Binding STT}" Width="45" IsReadOnly="True"/>
+                                <DataGridTextColumn Header="Mã chi tiết đặt sân" Binding="{Binding MaChiTiet, UpdateSourceTrigger=PropertyChanged}" Width="1.2*" IsReadOnly="True"/>
                                 <DataGridTextColumn Header="Giờ bắt đầu" Binding="{Binding GioBatDau, UpdateSourceTrigger=PropertyChanged}" Width="*"/>
                                 <DataGridTextColumn Header="Giờ kết thúc" Binding="{Binding GioKetThuc, UpdateSourceTrigger=PropertyChanged}" Width="*"/>
 
