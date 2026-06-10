@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
+using System.Linq;
 using System.Windows;
 using System.Windows.Input;
 using Microsoft.Data.SqlClient;
@@ -28,7 +29,40 @@ namespace QuanLySan.ViewModels
         public San? SanSelected { get => _sanSelected; set { _sanSelected = value; OnPropertyChanged(); } }
 
         private HoiVien? _hoiVienSelected;
-        public HoiVien? HoiVienSelected { get => _hoiVienSelected; set { _hoiVienSelected = value; OnPropertyChanged(); } }
+        public HoiVien? HoiVienSelected 
+        { 
+            get => _hoiVienSelected; 
+            set 
+            { 
+                _hoiVienSelected = value; 
+                OnPropertyChanged();
+                MaHoiVien = _hoiVienSelected?.MaHoiVien ?? "";
+            } 
+        }
+
+        private string _maHoiVien = "";
+        public string MaHoiVien 
+        { 
+            get => _maHoiVien; 
+            set 
+            { 
+                _maHoiVien = value; 
+                OnPropertyChanged();
+                // Auto-populate Tên hội viên when Mã hội viên changes
+                if (!string.IsNullOrEmpty(value))
+                {
+                    var hv = DsHoiVien.FirstOrDefault(h => h.MaHoiVien == value);
+                    if (hv != null)
+                    {
+                        HoiVienSelected = hv;
+                    }
+                }
+                else
+                {
+                    HoiVienSelected = null;
+                }
+            } 
+        }
 
         private DateTime? _ngayDat;
         public DateTime? NgayDat { get => _ngayDat; set { _ngayDat = value; OnPropertyChanged(); } }
@@ -182,7 +216,7 @@ namespace QuanLySan.ViewModels
         {
             // 1. Validate thông tin chung
             if (SanSelected == null) { MessageBox.Show("Vui lòng chọn sân!"); return; }
-            if (HoiVienSelected == null) { MessageBox.Show("Vui lòng chọn hội viên!"); return; }
+            if (string.IsNullOrEmpty(MaHoiVien) || HoiVienSelected == null) { MessageBox.Show("Vui lòng chọn hội viên!"); return; }
             if (NgayDat == null) { MessageBox.Show("Vui lòng chọn ngày đặt!"); return; }
             if (DsGioDat.Count == 0) { MessageBox.Show("Vui lòng thêm ít nhất một khung giờ đặt!"); return; }
 
@@ -304,6 +338,7 @@ namespace QuanLySan.ViewModels
         {
             SanSelected = null;
             HoiVienSelected = null;
+            MaHoiVien = "";
             GhiChu = "";
             NgayDat = DateTime.Now;
             DsGioDat.Clear();
