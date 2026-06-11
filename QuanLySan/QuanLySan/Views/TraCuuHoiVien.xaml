@@ -193,13 +193,7 @@
 
                     <StackPanel Grid.Column="6" Margin="0,0,0,0">
                         <TextBlock Text="Tên loại hội viên" Style="{StaticResource FieldLabel}"/>
-                        <ComboBox x:Name="cboLoaiHoiVien" Style="{StaticResource SimpleComboBox}" SelectedIndex="0">
-                            <ComboBoxItem>Tất cả</ComboBoxItem>
-                            <ComboBoxItem>Đồng</ComboBoxItem>
-                            <ComboBoxItem>Bạc</ComboBoxItem>
-                            <ComboBoxItem>Vàng</ComboBoxItem>
-                            <ComboBoxItem>Kim cương</ComboBoxItem>
-                        </ComboBox>
+                        <ComboBox x:Name="cboLoaiHoiVien" Style="{StaticResource SimpleComboBox}" SelectedIndex="0"/>
                     </StackPanel>
                 </Grid>
 
@@ -247,6 +241,11 @@
                                 Background="#2196F3" Foreground="White" FontWeight="Bold"
                                 BorderThickness="0" MinWidth="90"
                                 Click="BtnTimKiem_Click"/>
+                        <Button x:Name="btnLamMoi" Content="Làm mới"
+                                Style="{StaticResource SimpleButton}"
+                                Background="#4CAF50" Foreground="White" FontWeight="Bold"
+                                BorderThickness="0" Margin="10,0,0,0" MinWidth="80"
+                                Click="BtnLamMoi_Click"/>
                         <Button x:Name="btnThoat" Content="Thoát"
                                 Style="{StaticResource SimpleButton}"
                                 Background="#F0F0F0" Foreground="#333"
@@ -274,6 +273,14 @@
                             <Style TargetType="TextBlock">
                                 <Setter Property="HorizontalAlignment" Value="Center"/>
                                 <Setter Property="VerticalAlignment" Value="Center"/>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+                    <DataGridTextColumn Header="Mã Hội Viên" Width="*" Binding="{Binding MaHoiVien}">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="VerticalAlignment" Value="Center"/>
+                                <Setter Property="Padding" Value="6,0"/>
                             </Style>
                         </DataGridTextColumn.ElementStyle>
                     </DataGridTextColumn>
