@@ -4,7 +4,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:models="clr-namespace:QuanLySan.Models"
         Title="Đặt sân"
-        Width="750" Height="620"
+        Width="750" Height="670"
         WindowStartupLocation="CenterScreen"
         ResizeMode="NoResize"
         Background="Transparent"
@@ -14,7 +14,6 @@
         AllowsTransparency="True">
 
     <Window.Resources>
-        <!-- ===== COLOR PALETTE ===== -->
         <SolidColorBrush x:Key="PrimaryBrush" Color="#1B2A4A"/>
         <SolidColorBrush x:Key="TextPrimary" Color="#222222"/>
         <SolidColorBrush x:Key="InputBorder" Color="#CCCCCC"/>
@@ -91,7 +90,6 @@
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
-            <!-- ===== HEADER BAR ===== -->
             <Border Grid.Row="0"
                     Background="{StaticResource PrimaryBrush}"
                     Padding="20,12"
@@ -110,11 +108,9 @@
                 </Grid>
             </Border>
 
-            <!-- ===== CONTENT ===== -->
-            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="20,14,20,16">
+            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="20,14,20,16" Margin="0,0,0,-17">
                 <StackPanel>
 
-                    <!-- ── ROW 1: Mã đặt sân | Tên sân ── -->
                     <Grid Margin="0,0,0,12">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
@@ -128,54 +124,65 @@
                         </StackPanel>
 
                         <StackPanel Grid.Column="2">
-                            <TextBlock Text="Tên sân" Style="{StaticResource FieldLabel}"/>
+                            <TextBlock Text="Mã sân" Style="{StaticResource FieldLabel}"/>
                             <ComboBox ItemsSource="{Binding DsSan}" SelectedItem="{Binding SanSelected, Mode=TwoWay}"
                                       DisplayMemberPath="TenSan" Style="{StaticResource SimpleComboBox}"/>
                         </StackPanel>
                     </Grid>
 
-                    <!-- ── ROW 2: Họ tên hội viên | Ngày đặt ── -->
                     <Grid Margin="0,0,0,12">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="2*"/>
+                            <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="14"/>
                             <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="14"/>
+                            <ColumnDefinition Width="2*"/>
                         </Grid.ColumnDefinitions>
 
-                        <StackPanel Grid.Column="0">
-                            <TextBlock Text="Họ tên hội viên" Style="{StaticResource FieldLabel}"/>
-                            <ComboBox ItemsSource="{Binding DsHoiVien}" SelectedItem="{Binding HoiVienSelected, Mode=TwoWay}"
-                                      DisplayMemberPath="HoTen" IsEditable="True" IsTextSearchEnabled="True"
-                                      Style="{StaticResource SimpleComboBox}"/>
-                        </StackPanel>
-
-                        <StackPanel Grid.Column="2">
+                        <StackPanel Grid.Column="0" MinWidth="140">
                             <TextBlock Text="Ngày đặt" Style="{StaticResource FieldLabel}"/>
                             <DatePicker SelectedDate="{Binding NgayDat}" Height="28" VerticalContentAlignment="Center"/>
                         </StackPanel>
+
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Text="Mã hội viên" Style="{StaticResource FieldLabel}"/>
+                            <TextBox Style="{StaticResource SimpleTextBox}" Text="{Binding MaHoiVien, UpdateSourceTrigger=PropertyChanged}"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="4">
+                            <TextBlock Text="Tên hội viên" Style="{StaticResource FieldLabel}"/>
+                            <TextBox Text="{Binding HoiVienSelected.HoTen}" Style="{StaticResource SimpleTextBox}" IsReadOnly="True" Background="#F0F0F0"/>
+                        </StackPanel>
                     </Grid>
 
-                    <!-- ── ROW 3: Ghi chú | Tổng tiền ── -->
+                    <StackPanel Margin="0,0,0,12">
+                        <TextBlock Text="Ghi chú" Style="{StaticResource FieldLabel}"/>
+                        <TextBox Text="{Binding GhiChu}" Style="{StaticResource SimpleTextBox}" MinHeight="50" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" VerticalContentAlignment="Top" Padding="6,6" Height="13"/>
+                    </StackPanel>
+
                     <Grid Margin="0,0,0,12">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="2*"/>
+                            <ColumnDefinition Width="3*"/>
                             <ColumnDefinition Width="14"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
 
                         <StackPanel Grid.Column="0">
-                            <TextBlock Text="Ghi chú" Style="{StaticResource FieldLabel}"/>
-                            <TextBox Text="{Binding GhiChu}" Style="{StaticResource SimpleTextBox}"/>
+                            <TextBlock Text="Mã chi tiết đặt sân" Style="{StaticResource FieldLabel}"/>
+                            <TextBox Style="{StaticResource SimpleTextBox}" IsReadOnly="True" Background="#FFFFFF"/>
                         </StackPanel>
 
                         <StackPanel Grid.Column="2">
                             <TextBlock Text="Tổng tiền (VNĐ)" Style="{StaticResource FieldLabel}"/>
                             <TextBox Text="{Binding TongTien, StringFormat=N0}" Style="{StaticResource SimpleTextBox}"
                                      IsReadOnly="True" Background="#F0F0F0" FontWeight="Bold" Foreground="#1B2A4A"/>
+
+                            <Button Content="Thêm giờ" Style="{StaticResource SimpleButton}"
+                                    Background="{StaticResource PrimaryBrush}" Foreground="White" FontWeight="Bold"
+                                    Margin="0,10,0,0" HorizontalAlignment="Right" Command="{Binding ThemGioCommand}"/>
                         </StackPanel>
                     </Grid>
 
-                    <!-- ── GROUPBOX: Giờ đặt ── -->
                     <GroupBox Margin="0,4,0,16" Padding="12,8,12,12"
                               BorderBrush="{StaticResource PrimaryBrush}" BorderThickness="1.5">
                         <GroupBox.Header>
@@ -189,38 +196,39 @@
                                   Height="180"
                                   CellEditEnding="DgGioDat_CellEditEnding">
                             <DataGrid.Columns>
-                                <DataGridTextColumn Header="STT" Binding="{Binding STT}" Width="45" IsReadOnly="True"/>
-                                <DataGridTextColumn Header="Giờ bắt đầu" Binding="{Binding GioBatDau, UpdateSourceTrigger=PropertyChanged}" Width="*"/>
-                                <DataGridTextColumn Header="Giờ kết thúc" Binding="{Binding GioKetThuc, UpdateSourceTrigger=PropertyChanged}" Width="*"/>
+                                <DataGridTextColumn Header="STT" 
+                        Binding="{Binding STT}" 
+                        Width="50" 
+                        IsReadOnly="True"/>
 
-                                <DataGridTemplateColumn Header="Loại ngày" Width="*">
-                                    <DataGridTemplateColumn.CellTemplate>
-                                        <DataTemplate>
-                                            <ComboBox ItemsSource="{x:Static models:GioSanItem.DsLoaiNgay}"
-                                                      SelectedItem="{Binding LoaiNgay, UpdateSourceTrigger=PropertyChanged}"
-                                                      VerticalContentAlignment="Center" Padding="4,0"
-                                                      BorderThickness="0" Background="Transparent"/>
-                                        </DataTemplate>
-                                    </DataGridTemplateColumn.CellTemplate>
-                                </DataGridTemplateColumn>
+                                <DataGridTextColumn Header="Mã chi tiết đặt sân" 
+                        Binding="{Binding MaChiTiet, UpdateSourceTrigger=PropertyChanged}" 
+                        Width="2*" 
+                        IsReadOnly="True"/>
 
-                                <DataGridTextColumn Header="Đơn giá" Binding="{Binding DonGia, StringFormat=N0}" Width="*" IsReadOnly="True"/>
+                                <DataGridTextColumn Header="Giờ bắt đầu" 
+                        Binding="{Binding GioBatDau, UpdateSourceTrigger=PropertyChanged}" 
+                        Width="1.3*"/>
 
-                                <DataGridTemplateColumn Header="Xóa" Width="45">
-                                    <DataGridTemplateColumn.CellTemplate>
-                                        <DataTemplate>
-                                            <Button Content="✕" FontSize="12" FontWeight="Bold" Foreground="#D32F2F"
-                                                    Background="Transparent" BorderThickness="0" Cursor="Hand" HorizontalAlignment="Center"
-                                                    Command="{Binding DataContext.XoaGioCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
-                                                    CommandParameter="{Binding}"/>
-                                        </DataTemplate>
-                                    </DataGridTemplateColumn.CellTemplate>
-                                </DataGridTemplateColumn>
+                                <DataGridTextColumn Header="Giờ kết thúc" 
+                        Binding="{Binding GioKetThuc, UpdateSourceTrigger=PropertyChanged}" 
+                        Width="1.3*"/>
+
+                                <DataGridTextColumn Header="Đơn giá" 
+                        Binding="{Binding DonGia, StringFormat=N0}" 
+                        Width="1.1*" 
+                        IsReadOnly="True">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="FontWeight" Value="SemiBold"/>
+                                            <Setter Property="Foreground" Value="#1B2A4A"/>
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
                             </DataGrid.Columns>
                         </DataGrid>
                     </GroupBox>
 
-                    <!-- ── NÚT XỬ LÝ ── -->
                     <Grid Margin="0,4,0,0">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
@@ -228,9 +236,6 @@
                         </Grid.ColumnDefinitions>
 
                         <StackPanel Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Left">
-                            <Button Content="Thêm giờ" Style="{StaticResource SimpleButton}"
-                                    Background="{StaticResource PrimaryBrush}" Foreground="White" FontWeight="Bold"
-                                    Margin="0,0,10,0" Command="{Binding ThemGioCommand}"/>
                             <Button Content="Đặt sân" Style="{StaticResource SimpleButton}"
                                     Background="{StaticResource PrimaryBrush}" Foreground="White" FontWeight="Bold"
                                     Command="{Binding DatSanCommand}"/>

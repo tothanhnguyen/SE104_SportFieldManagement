@@ -1,7 +1,7 @@
 <Application x:Class="QuanLySan.Views.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             StartupUri="Views/TraCuuHoiVien.xaml">
+             StartupUri="Views/DatSanWindow.xaml">
     <Application.Resources>
     </Application.Resources>
 </Application>
