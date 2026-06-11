@@ -23,6 +23,7 @@ namespace QuanLySan.Views
         {
             InitializeComponent();
             dgHoiVien.ItemsSource = _ketQua;
+            NapLoaiHoiVien();
             NapDuLieu("", null); // hiển thị toàn bộ hội viên khi mở màn hình
         }
 
@@ -58,6 +59,83 @@ namespace QuanLySan.Views
 
         private void ThucHienTimKiem()
         {
+            // ===== VALIDATE INPUT =====
+
+            // Validate điểm tích lũy
+            string diemTuText = txtDiemTu.Text.Trim();
+            string diemDenText = txtDiemDen.Text.Trim();
+
+            if (diemTuText != "" && !int.TryParse(diemTuText, out _))
+            {
+                MessageBox.Show("Điểm tích lũy (từ) phải là số nguyên.", "Cảnh báo",
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                txtDiemTu.Focus();
+                return;
+            }
+            if (diemDenText != "" && !int.TryParse(diemDenText, out _))
+            {
+                MessageBox.Show("Điểm tích lũy (đến) phải là số nguyên.", "Cảnh báo",
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                txtDiemDen.Focus();
+                return;
+            }
+
+            int? diemTuVal = int.TryParse(diemTuText, out int dtv) ? dtv : null;
+            int? diemDenVal = int.TryParse(diemDenText, out int ddv) ? ddv : null;
+
+            if (diemTuVal.HasValue && diemTuVal.Value < 0)
+            {
+                MessageBox.Show("Điểm tích lũy (từ) không được là số âm.", "Cảnh báo",
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                txtDiemTu.Focus();
+                return;
+            }
+            if (diemDenVal.HasValue && diemDenVal.Value < 0)
+            {
+                MessageBox.Show("Điểm tích lũy (đến) không được là số âm.", "Cảnh báo",
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                txtDiemDen.Focus();
+                return;
+            }
+            if (diemTuVal.HasValue && diemDenVal.HasValue && diemTuVal.Value > diemDenVal.Value)
+            {
+                MessageBox.Show("Điểm tích lũy (từ) phải nhỏ hơn hoặc bằng Điểm tích lũy (đến).", "Cảnh báo",
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                txtDiemTu.Focus();
+                return;
+            }
+
+            // Validate ngày đăng ký
+            string ngayTuText = txtNgayTu.Text.Trim();
+            string ngayDenText = txtNgayDen.Text.Trim();
+
+            if (ngayTuText != "" && !DateTime.TryParse(ngayTuText, out _))
+            {
+                MessageBox.Show("Ngày đăng ký (từ) không đúng định dạng.\nVui lòng nhập theo dạng dd/MM/yyyy.", "Cảnh báo",
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                txtNgayTu.Focus();
+                return;
+            }
+            if (ngayDenText != "" && !DateTime.TryParse(ngayDenText, out _))
+            {
+                MessageBox.Show("Ngày đăng ký (đến) không đúng định dạng.\nVui lòng nhập theo dạng dd/MM/yyyy.", "Cảnh báo",
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                txtNgayDen.Focus();
+                return;
+            }
+
+            DateTime? ngayTuVal = DateTime.TryParse(ngayTuText, out DateTime ntv) ? ntv : null;
+            DateTime? ngayDenVal = DateTime.TryParse(ngayDenText, out DateTime ndv) ? ndv : null;
+
+            if (ngayTuVal.HasValue && ngayDenVal.HasValue && ngayTuVal.Value > ngayDenVal.Value)
+            {
+                MessageBox.Show("Ngày đăng ký (từ) phải nhỏ hơn hoặc bằng Ngày đăng ký (đến).", "Cảnh báo",
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                txtNgayTu.Focus();
+                return;
+            }
+
+            // ===== BUILD QUERY =====
             var dieuKien = new List<string>();
             var thamSo = new List<SqlParameter>();
 
@@ -84,28 +162,28 @@ namespace QuanLySan.Views
                 thamSo.Add(new SqlParameter("@TenLoai", loaiHV));
             }
 
-            // Điểm tích lũy: khoảng từ - đến
-            if (int.TryParse(txtDiemTu.Text.Trim(), out int diemTu))
+            // Điểm tích lũy: khoảng từ - đến (đã validate ở trên)
+            if (diemTuVal.HasValue)
             {
                 dieuKien.Add("hv.DiemTichLuy >= @DiemTu");
-                thamSo.Add(new SqlParameter("@DiemTu", diemTu));
+                thamSo.Add(new SqlParameter("@DiemTu", diemTuVal.Value));
             }
-            if (int.TryParse(txtDiemDen.Text.Trim(), out int diemDen))
+            if (diemDenVal.HasValue)
             {
                 dieuKien.Add("hv.DiemTichLuy <= @DiemDen");
-                thamSo.Add(new SqlParameter("@DiemDen", diemDen));
+                thamSo.Add(new SqlParameter("@DiemDen", diemDenVal.Value));
             }
 
-            // Ngày đăng ký: khoảng từ - đến
-            if (DateTime.TryParse(txtNgayTu.Text.Trim(), out DateTime ngayTu))
+            // Ngày đăng ký: khoảng từ - đến (đã validate ở trên)
+            if (ngayTuVal.HasValue)
             {
                 dieuKien.Add("hv.NgayDangKyHoiVien >= @NgayTu");
-                thamSo.Add(new SqlParameter("@NgayTu", ngayTu.Date));
+                thamSo.Add(new SqlParameter("@NgayTu", ngayTuVal.Value.Date));
             }
-            if (DateTime.TryParse(txtNgayDen.Text.Trim(), out DateTime ngayDen))
+            if (ngayDenVal.HasValue)
             {
                 dieuKien.Add("hv.NgayDangKyHoiVien <= @NgayDen");
-                thamSo.Add(new SqlParameter("@NgayDen", ngayDen.Date));
+                thamSo.Add(new SqlParameter("@NgayDen", ngayDenVal.Value.Date));
             }
 
             string where = dieuKien.Count > 0 ? " WHERE " + string.Join(" AND ", dieuKien) : "";
@@ -164,6 +242,32 @@ namespace QuanLySan.Views
                 MessageBox.Show("Lỗi truy vấn dữ liệu: " + ex.Message, "Lỗi",
                     MessageBoxButton.OK, MessageBoxImage.Error);
             }
+        }
+
+        // ================ NẠP LOẠI HỘI VIÊN TỪ DB ================
+
+        private void NapLoaiHoiVien()
+        {
+            cboLoaiHoiVien.Items.Clear();
+            cboLoaiHoiVien.Items.Add(new ComboBoxItem { Content = "Tất cả" });
+            try
+            {
+                using var conn = new SqlConnection(_connectionString);
+                conn.Open();
+                using var cmd = new SqlCommand(
+                    "SELECT TenLoaiHoiVien FROM LOAIHOIVIEN ORDER BY MaLoaiHoiVien", conn);
+                using var reader = cmd.ExecuteReader();
+                while (reader.Read())
+                {
+                    string ten = reader["TenLoaiHoiVien"]?.ToString() ?? "";
+                    if (ten != "") cboLoaiHoiVien.Items.Add(new ComboBoxItem { Content = ten });
+                }
+            }
+            catch
+            {
+                // Giữ mặc định "Tất cả" nếu không kết nối được DB
+            }
+            cboLoaiHoiVien.SelectedIndex = 0;
         }
 
         // ================ GỢI Ý TÌM KIẾM <CÓ CHỨA> ================
