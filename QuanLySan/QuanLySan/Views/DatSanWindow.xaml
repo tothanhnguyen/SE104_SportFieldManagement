@@ -4,7 +4,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:models="clr-namespace:QuanLySan.Models"
         Title="Đặt sân"
-        Width="750" Height="670"
+        Width="780" Height="720"
         WindowStartupLocation="CenterScreen"
         ResizeMode="NoResize"
         Background="Transparent"
@@ -68,6 +68,8 @@
             <Setter Property="FontSize" Value="13"/>
             <Setter Property="Background" Value="White"/>
             <Setter Property="AlternatingRowBackground" Value="#F9F9F9"/>
+            <Setter Property="IsReadOnly" Value="True"/>
+            <Setter Property="SelectionMode" Value="Single"/>
         </Style>
 
         <Style x:Key="DataGridHeaderStyle" TargetType="{x:Type DataGridColumnHeader}">
@@ -90,6 +92,7 @@
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
+            <!-- ═══ HEADER BAR ═══ -->
             <Border Grid.Row="0"
                     Background="{StaticResource PrimaryBrush}"
                     Padding="20,12"
@@ -108,9 +111,11 @@
                 </Grid>
             </Border>
 
-            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="20,14,20,16" Margin="0,0,0,-17">
+            <!-- ═══ NỘI DUNG CHÍNH ═══ -->
+            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="20,14,20,16">
                 <StackPanel>
 
+                    <!-- ── DÒNG 1: Mã đặt sân + Mã sân ── -->
                     <Grid Margin="0,0,0,12">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
@@ -120,16 +125,17 @@
 
                         <StackPanel Grid.Column="0">
                             <TextBlock Text="Mã đặt sân" Style="{StaticResource FieldLabel}"/>
-                            <TextBox Text="{Binding MaPhieuDat}" Style="{StaticResource SimpleTextBox}" IsReadOnly="True" Background="#F0F0F0"/>
+                            <TextBox Text="{Binding MaDatSan}" Style="{StaticResource SimpleTextBox}" IsReadOnly="True" Background="#F0F0F0"/>
                         </StackPanel>
 
                         <StackPanel Grid.Column="2">
                             <TextBlock Text="Mã sân" Style="{StaticResource FieldLabel}"/>
                             <ComboBox ItemsSource="{Binding DsSan}" SelectedItem="{Binding SanSelected, Mode=TwoWay}"
-                                      DisplayMemberPath="TenSan" Style="{StaticResource SimpleComboBox}"/>
+                                      DisplayMemberPath="MaSan" Style="{StaticResource SimpleComboBox}"/>
                         </StackPanel>
                     </Grid>
 
+                    <!-- ── DÒNG 2: Ngày đặt + Mã hội viên + Tên hội viên ── -->
                     <Grid Margin="0,0,0,12">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
@@ -151,16 +157,18 @@
 
                         <StackPanel Grid.Column="4">
                             <TextBlock Text="Tên hội viên" Style="{StaticResource FieldLabel}"/>
-                            <TextBox Text="{Binding HoiVienSelected.HoTen}" Style="{StaticResource SimpleTextBox}" IsReadOnly="True" Background="#F0F0F0"/>
+                            <TextBox Text="{Binding TenHoiVienHienThi, Mode=OneWay}" Style="{StaticResource SimpleTextBox}" IsReadOnly="True" Background="#F0F0F0"/>
                         </StackPanel>
                     </Grid>
 
+                    <!-- ── DÒNG 3: Ghi chú ── -->
                     <StackPanel Margin="0,0,0,12">
                         <TextBlock Text="Ghi chú" Style="{StaticResource FieldLabel}"/>
-                        <TextBox Text="{Binding GhiChu}" Style="{StaticResource SimpleTextBox}" MinHeight="50" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" VerticalContentAlignment="Top" Padding="6,6" Height="13"/>
+                        <TextBox Text="{Binding GhiChu}" Style="{StaticResource SimpleTextBox}" MinHeight="50" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" VerticalContentAlignment="Top" Padding="6,6" Height="Auto"/>
                     </StackPanel>
 
-                    <Grid Margin="0,0,0,12">
+                    <!-- ── DÒNG 4: Mã chi tiết đặt sân + Tổng tiền (VNĐ) ── -->
+                    <Grid Margin="0,0,0,8">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="3*"/>
                             <ColumnDefinition Width="14"/>
@@ -169,55 +177,65 @@
 
                         <StackPanel Grid.Column="0">
                             <TextBlock Text="Mã chi tiết đặt sân" Style="{StaticResource FieldLabel}"/>
-                            <TextBox Style="{StaticResource SimpleTextBox}" IsReadOnly="True" Background="#FFFFFF"/>
+                            <TextBox Style="{StaticResource SimpleTextBox}" Text="{Binding MaChiTietHienThi, Mode=OneWay}" IsReadOnly="True" Background="#F0F0F0"/>
                         </StackPanel>
 
                         <StackPanel Grid.Column="2">
                             <TextBlock Text="Tổng tiền (VNĐ)" Style="{StaticResource FieldLabel}"/>
-                            <TextBox Text="{Binding TongTien, StringFormat=N0}" Style="{StaticResource SimpleTextBox}"
-                                     IsReadOnly="True" Background="#F0F0F0" FontWeight="Bold" Foreground="#1B2A4A"/>
-
-                            <Button Content="Thêm giờ" Style="{StaticResource SimpleButton}"
-                                    Background="{StaticResource PrimaryBrush}" Foreground="White" FontWeight="Bold"
-                                    Margin="0,10,0,0" HorizontalAlignment="Right" Command="{Binding ThemGioCommand}"/>
+                            <TextBox Text="{Binding TongTien, StringFormat=N0, Mode=OneWay}" Style="{StaticResource SimpleTextBox}"
+                                     IsReadOnly="True" Background="#F0F0F0" FontWeight="Bold" Foreground="#1B2A4A"
+                                     HorizontalContentAlignment="Right"/>
                         </StackPanel>
                     </Grid>
 
-                    <GroupBox Margin="0,4,0,16" Padding="12,8,12,12"
-                              BorderBrush="{StaticResource PrimaryBrush}" BorderThickness="1.5">
+                    <!-- ── Nút Thêm giờ (căn phải) ── -->
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,0,8">
+                        <Button Content="Thêm giờ" Style="{StaticResource SimpleButton}"
+                                Background="{StaticResource PrimaryBrush}" Foreground="White" FontWeight="Bold"
+                                Command="{Binding ThemGioCommand}"/>
+                    </StackPanel>
+
+                    <!-- ═══ KHUNG GIỜ ĐẶT ═══ -->
+                    <GroupBox Margin="0,0,0,12" Padding="8,6,8,8"
+                              BorderBrush="{StaticResource InputBorder}" BorderThickness="1">
                         <GroupBox.Header>
-                            <TextBlock Text="  Khung giờ đặt  " FontSize="14" FontWeight="Bold" Foreground="{StaticResource PrimaryBrush}"/>
+                            <TextBlock Text="  Khung giờ đặt  " FontSize="13" FontWeight="Bold" Foreground="{StaticResource TextPrimary}"/>
                         </GroupBox.Header>
 
+                        <!-- ── DataGrid khung giờ đặt (chỉ xem, chuột phải xóa) ── -->
                         <DataGrid x:Name="dgGioDat"
                                   ItemsSource="{Binding DsGioDat}"
                                   Style="{StaticResource StyledDataGrid}"
                                   ColumnHeaderStyle="{StaticResource DataGridHeaderStyle}"
-                                  Height="180"
-                                  CellEditEnding="DgGioDat_CellEditEnding">
+                                  Height="160">
+
+                            <!-- Context menu chuột phải để xóa dòng -->
+                            <DataGrid.ContextMenu>
+                                <ContextMenu>
+                                    <MenuItem Header="Xóa dòng này" Click="MenuXoaDong_Click"/>
+                                </ContextMenu>
+                            </DataGrid.ContextMenu>
+
                             <DataGrid.Columns>
                                 <DataGridTextColumn Header="STT" 
-                        Binding="{Binding STT}" 
-                        Width="50" 
-                        IsReadOnly="True"/>
+                                    Binding="{Binding STT}" 
+                                    Width="50"/>
 
                                 <DataGridTextColumn Header="Mã chi tiết đặt sân" 
-                        Binding="{Binding MaChiTiet, UpdateSourceTrigger=PropertyChanged}" 
-                        Width="2*" 
-                        IsReadOnly="True"/>
+                                    Binding="{Binding MaChiTiet}" 
+                                    Width="1.5*"/>
 
                                 <DataGridTextColumn Header="Giờ bắt đầu" 
-                        Binding="{Binding GioBatDau, UpdateSourceTrigger=PropertyChanged}" 
-                        Width="1.3*"/>
+                                    Binding="{Binding GioBatDau}" 
+                                    Width="*"/>
 
                                 <DataGridTextColumn Header="Giờ kết thúc" 
-                        Binding="{Binding GioKetThuc, UpdateSourceTrigger=PropertyChanged}" 
-                        Width="1.3*"/>
+                                    Binding="{Binding GioKetThuc}" 
+                                    Width="*"/>
 
                                 <DataGridTextColumn Header="Đơn giá" 
-                        Binding="{Binding DonGia, StringFormat=N0}" 
-                        Width="1.1*" 
-                        IsReadOnly="True">
+                                    Binding="{Binding DonGia, StringFormat=N0}" 
+                                    Width="*">
                                     <DataGridTextColumn.ElementStyle>
                                         <Style TargetType="TextBlock">
                                             <Setter Property="FontWeight" Value="SemiBold"/>
@@ -229,6 +247,7 @@
                         </DataGrid>
                     </GroupBox>
 
+                    <!-- ── Nút Đặt sân / Hủy / Thoát ── -->
                     <Grid Margin="0,4,0,0">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>

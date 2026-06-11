@@ -230,14 +230,14 @@ namespace QuanLySan.ViewModels
                             cmd.ExecuteNonQuery();
                         }
 
-                        // Lưu vào bảng CHITIET_GIO_SAN
+                        // Lưu vào bảng KHUNGGIO (khung giờ mặc định của sân)
                         foreach (var item in DsGioSan)
                         {
                             string maLoaiNgay = MapLoaiNgay[item.LoaiNgay];
                             TryParseGio(item.GioBatDau, out TimeSpan gioBD);
                             TryParseGio(item.GioKetThuc, out TimeSpan gioKT);
 
-                            string sqlGio = "INSERT INTO CHITIETDATSAN (MaSan, GioBatDau, GioKetThuc, MaLoaiNgay, DonGia) VALUES (@MaSan, @BD, @KT, @MLN, @Gia)";
+                            string sqlGio = "INSERT INTO KHUNGGIO (MaSan, GioBatDau, GioKetThuc, MaLoaiNgay, DonGia) VALUES (@MaSan, @BD, @KT, @MLN, @Gia)";
                             using (SqlCommand cmd = new SqlCommand(sqlGio, conn, trans))
                             {
                                 cmd.Parameters.AddWithValue("@MaSan", MaSan);
