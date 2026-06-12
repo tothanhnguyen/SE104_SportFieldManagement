@@ -150,6 +150,7 @@
                     <StackPanel Grid.Column="0" Margin="0,0,8,0">
                         <TextBlock Text="Mã hội viên" Style="{StaticResource FieldLabel}"/>
                         <TextBox x:Name="txtMaHoiVien" Tag="MaHoiVien"
+                                 Text="{Binding MaHoiVien, UpdateSourceTrigger=PropertyChanged}"
                                  Style="{StaticResource PlaceholderTextBox}"
                                  TextChanged="OnSearchBoxTextChanged"/>
                     </StackPanel>
@@ -157,6 +158,7 @@
                     <StackPanel Grid.Column="1" Margin="0,0,8,0">
                         <TextBlock Text="Tên Hội Viên" Style="{StaticResource FieldLabel}"/>
                         <TextBox x:Name="txtTenHoiVien" Tag="HoTen"
+                                 Text="{Binding HoTen, UpdateSourceTrigger=PropertyChanged}"
                                  Style="{StaticResource PlaceholderTextBox}"
                                  TextChanged="OnSearchBoxTextChanged"/>
                     </StackPanel>
@@ -164,6 +166,7 @@
                     <StackPanel Grid.Column="2" Margin="0,0,8,0">
                         <TextBlock Text="SĐT" Style="{StaticResource FieldLabel}"/>
                         <TextBox x:Name="txtSDT" Tag="SDT"
+                                 Text="{Binding SDT, UpdateSourceTrigger=PropertyChanged}"
                                  Style="{StaticResource PlaceholderTextBox}"
                                  TextChanged="OnSearchBoxTextChanged"/>
                     </StackPanel>
@@ -171,6 +174,7 @@
                     <StackPanel Grid.Column="3" Margin="0,0,8,0">
                         <TextBlock Text="Email" Style="{StaticResource FieldLabel}"/>
                         <TextBox x:Name="txtEmail" Tag="Email"
+                                 Text="{Binding Email, UpdateSourceTrigger=PropertyChanged}"
                                  Style="{StaticResource PlaceholderTextBox}"
                                  TextChanged="OnSearchBoxTextChanged"/>
                     </StackPanel>
@@ -178,22 +182,23 @@
                     <StackPanel Grid.Column="4" Margin="0,0,8,0">
                         <TextBlock Text="Ghi chú" Style="{StaticResource FieldLabel}"/>
                         <TextBox x:Name="txtGhiChu" Tag="GhiChu"
+                                 Text="{Binding GhiChu, UpdateSourceTrigger=PropertyChanged}"
                                  Style="{StaticResource PlaceholderTextBox}"
                                  TextChanged="OnSearchBoxTextChanged"/>
                     </StackPanel>
 
                     <StackPanel Grid.Column="5" Margin="0,0,8,0">
                         <TextBlock Text="Giới tính" Style="{StaticResource FieldLabel}"/>
-                        <ComboBox x:Name="cboGioiTinh" Style="{StaticResource SimpleComboBox}" SelectedIndex="0">
-                            <ComboBoxItem>Tất cả</ComboBoxItem>
-                            <ComboBoxItem>Nam</ComboBoxItem>
-                            <ComboBoxItem>Nữ</ComboBoxItem>
-                        </ComboBox>
+                        <ComboBox Style="{StaticResource SimpleComboBox}"
+                                  ItemsSource="{Binding DsGioiTinh}"
+                                  SelectedItem="{Binding GioiTinhSelected, Mode=TwoWay}"/>
                     </StackPanel>
 
                     <StackPanel Grid.Column="6" Margin="0,0,0,0">
                         <TextBlock Text="Tên loại hội viên" Style="{StaticResource FieldLabel}"/>
-                        <ComboBox x:Name="cboLoaiHoiVien" Style="{StaticResource SimpleComboBox}" SelectedIndex="0"/>
+                        <ComboBox Style="{StaticResource SimpleComboBox}"
+                                  ItemsSource="{Binding DsLoaiHoiVien}"
+                                  SelectedItem="{Binding LoaiHoiVienSelected, Mode=TwoWay}"/>
                     </StackPanel>
                 </Grid>
 
@@ -211,11 +216,13 @@
                         <TextBlock Text="Điểm tích lũy" VerticalAlignment="Center" Margin="0,0,8,0"
                                    FontWeight="SemiBold" FontStyle="Italic"/>
                         <TextBlock Text="từ" Foreground="Red" VerticalAlignment="Center" Margin="0,0,5,0"/>
-                        <TextBox x:Name="txtDiemTu" Width="100" Height="28"
+                        <TextBox Width="100" Height="28"
+                                 Text="{Binding DiemTu, UpdateSourceTrigger=PropertyChanged}"
                                  VerticalContentAlignment="Center" Padding="6,4"
                                  BorderBrush="{StaticResource InputBorder}" BorderThickness="1"/>
                         <TextBlock Text="đến" Foreground="Red" VerticalAlignment="Center" Margin="10,0,5,0"/>
-                        <TextBox x:Name="txtDiemDen" Width="100" Height="28"
+                        <TextBox Width="100" Height="28"
+                                 Text="{Binding DiemDen, UpdateSourceTrigger=PropertyChanged}"
                                  VerticalContentAlignment="Center" Padding="6,4"
                                  BorderBrush="{StaticResource InputBorder}" BorderThickness="1"/>
                     </StackPanel>
@@ -225,27 +232,29 @@
                         <TextBlock Text="Ngày đăng ký" VerticalAlignment="Center" Margin="0,0,8,0"
                                    FontWeight="SemiBold" FontStyle="Italic"/>
                         <TextBlock Text="từ" Foreground="Red" VerticalAlignment="Center" Margin="0,0,5,0"/>
-                        <TextBox x:Name="txtNgayTu" Width="100" Height="28"
+                        <TextBox Width="100" Height="28"
+                                 Text="{Binding NgayTu, UpdateSourceTrigger=PropertyChanged}"
                                  VerticalContentAlignment="Center" Padding="6,4"
                                  BorderBrush="{StaticResource InputBorder}" BorderThickness="1"/>
                         <TextBlock Text="đến" Foreground="Red" VerticalAlignment="Center" Margin="10,0,5,0"/>
-                        <TextBox x:Name="txtNgayDen" Width="100" Height="28"
+                        <TextBox Width="100" Height="28"
+                                 Text="{Binding NgayDen, UpdateSourceTrigger=PropertyChanged}"
                                  VerticalContentAlignment="Center" Padding="6,4"
                                  BorderBrush="{StaticResource InputBorder}" BorderThickness="1"/>
                     </StackPanel>
 
                     <!-- Buttons: Tra cứu + Thoát -->
                     <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center">
-                        <Button x:Name="btnTimKiem" Content="Tra cứu"
+                        <Button Content="Tra cứu"
                                 Style="{StaticResource SimpleButton}"
                                 Background="#2196F3" Foreground="White" FontWeight="Bold"
                                 BorderThickness="0" MinWidth="90"
-                                Click="BtnTimKiem_Click"/>
-                        <Button x:Name="btnLamMoi" Content="Làm mới"
+                                Command="{Binding TimKiemCommand}"/>
+                        <Button Content="Làm mới"
                                 Style="{StaticResource SimpleButton}"
                                 Background="#4CAF50" Foreground="White" FontWeight="Bold"
                                 BorderThickness="0" Margin="10,0,0,0" MinWidth="80"
-                                Click="BtnLamMoi_Click"/>
+                                Command="{Binding LamMoiCommand}"/>
                         <Button x:Name="btnThoat" Content="Thoát"
                                 Style="{StaticResource SimpleButton}"
                                 Background="#F0F0F0" Foreground="#333"
@@ -257,6 +266,7 @@
 
             <!-- ===== DATAGRID ===== -->
             <DataGrid x:Name="dgHoiVien" Grid.Row="2" Margin="20,5,20,20"
+                      ItemsSource="{Binding KetQua}"
                       AutoGenerateColumns="False" Background="White"
                       IsReadOnly="True" CanUserAddRows="False"
                       GridLinesVisibility="All"

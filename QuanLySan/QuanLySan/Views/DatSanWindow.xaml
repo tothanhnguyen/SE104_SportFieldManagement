@@ -229,12 +229,16 @@
                                     Binding="{Binding GioBatDau}" 
                                     Width="*"/>
 
-                                <DataGridTextColumn Header="Giờ kết thúc" 
-                                    Binding="{Binding GioKetThuc}" 
+                                <DataGridTextColumn Header="Giờ kết thúc"
+                                    Binding="{Binding GioKetThuc}"
                                     Width="*"/>
 
-                                <DataGridTextColumn Header="Đơn giá" 
-                                    Binding="{Binding DonGia, StringFormat=N0}" 
+                                <DataGridTextColumn Header="Loại ngày"
+                                    Binding="{Binding LoaiNgay}"
+                                    Width="*"/>
+
+                                <DataGridTextColumn Header="Đơn giá"
+                                    Binding="{Binding DonGia, StringFormat=N0}"
                                     Width="*">
                                     <DataGridTextColumn.ElementStyle>
                                         <Style TargetType="TextBlock">
