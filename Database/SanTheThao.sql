@@ -93,11 +93,7 @@ CREATE TABLE THAMSO (
 );
 
 -- ═══════════════════════════════════════════════════════
--- 10. Bảng Chi Tiết Đặt Sân (Khung giờ của sân – tạo khi Tiếp nhận sân, Sprint 3)
---     Mỗi dòng = 1 khung giờ trên 1 sân cụ thể.
---     Chưa gắn với phiếu đặt nào; phiếu DATSAN sẽ tham chiếu tới
---     khung giờ này khi đặt sân (DATSAN.MaChiTiet → CHITIETDATSAN.MaChiTiet).
---     Đơn giá KHÔNG lưu ở đây – lấy theo LOAINGAY.DonGiaNgay (Quy định 1).
+-- 10. Bảng Chi Tiết Đặt Sân
 -- ═══════════════════════════════════════════════════════
 CREATE TABLE CHITIETDATSAN (
     MaChiTiet VARCHAR(20) PRIMARY KEY,
@@ -109,9 +105,7 @@ CREATE TABLE CHITIETDATSAN (
 GO
 
 -- ═══════════════════════════════════════════════════════
--- 11. Bảng Đặt Sân (Sprint 4 – BM4: Phiếu đặt sân)
---     Một phiếu đặt thuộc về 1 Hội Viên và tham chiếu tới
---     1 Chi Tiết Đặt Sân (khung giờ) đã chọn.
+-- 11. Bảng Đặt Sân
 -- ═══════════════════════════════════════════════════════
 CREATE TABLE DATSAN (
     MaDatSan VARCHAR(20) PRIMARY KEY,
