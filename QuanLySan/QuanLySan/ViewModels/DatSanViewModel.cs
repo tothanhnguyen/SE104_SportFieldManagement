@@ -5,10 +5,10 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Linq;
-using System.Windows;
 using System.Windows.Input;
-using Microsoft.Data.SqlClient;
+using QuanLySan.Data;
 using QuanLySan.Models;
+using QuanLySan.Services;
 using QuanLySan.ViewModels.Base;
 
 namespace QuanLySan.ViewModels
@@ -18,75 +18,54 @@ namespace QuanLySan.ViewModels
     //  - Các khung giờ đặt không được trùng với khung giờ đã được đặt.
     public class DatSanViewModel : BaseViewModel
     {
-        private readonly string _connectionString = DatabaseConfig.ConnectionString;
         private const string MA_TINHTRANG_BAOTRI = "BT";
+
+        private readonly IDialogService _dialog;
+        private readonly DanhMucRepository _danhMuc;
+        private readonly DatSanRepository _datSanRepo;
 
         // ── Thông tin phiếu đặt (BM4) ──
         private string _maDatSan = "";
         public string MaDatSan { get => _maDatSan; set { _maDatSan = value; OnPropertyChanged(); } }
 
         private San? _sanSelected;
-        public San? SanSelected 
-        { 
-            get => _sanSelected; 
-            set 
-            { 
-                _sanSelected = value; 
+        public San? SanSelected
+        {
+            get => _sanSelected;
+            set
+            {
+                _sanSelected = value;
                 OnPropertyChanged();
                 // Khi chọn sân mới, xóa danh sách giờ cũ
                 DsGioDat.Clear();
                 TongTien = 0;
-                _chiTietCounter = 0;
-            } 
+                // Nạp gợi ý mã chi tiết theo sân vừa chọn
+                LoadGoiYMaChiTiet();
+            }
         }
 
+        // Hội viên ứng với mã đã nhập (read-only, cập nhật trong setter của MaHoiVien)
         private HoiVien? _hoiVienSelected;
-        public HoiVien? HoiVienSelected 
-        { 
-            get => _hoiVienSelected; 
-            set 
-            { 
-                _hoiVienSelected = value; 
-                OnPropertyChanged();
-                OnPropertyChanged(nameof(TenHoiVienHienThi));
-            } 
-        }
+        public HoiVien? HoiVienSelected => _hoiVienSelected;
 
-        // Tên hội viên hiển thị (read-only, tự cập nhật khi HoiVienSelected thay đổi)
+        // Tên hội viên hiển thị (read-only, tự cập nhật khi MaHoiVien thay đổi)
         public string TenHoiVienHienThi => HoiVienSelected?.HoTen ?? "";
 
         private string _maHoiVien = "";
-        public string MaHoiVien 
-        { 
-            get => _maHoiVien; 
-            set 
-            { 
-                _maHoiVien = value; 
+        public string MaHoiVien
+        {
+            get => _maHoiVien;
+            set
+            {
+                _maHoiVien = value;
                 OnPropertyChanged();
-                // Auto-populate Tên hội viên when Mã hội viên changes
-                if (!string.IsNullOrEmpty(value))
-                {
-                    var hv = DsHoiVien.FirstOrDefault(h => h.MaHoiVien == value);
-                    if (hv != null)
-                    {
-                        _hoiVienSelected = hv;
-                        OnPropertyChanged(nameof(HoiVienSelected));
-                        OnPropertyChanged(nameof(TenHoiVienHienThi));
-                    }
-                    else
-                    {
-                        _hoiVienSelected = null;
-                        OnPropertyChanged(nameof(HoiVienSelected));
-                        OnPropertyChanged(nameof(TenHoiVienHienThi));
-                    }
-                }
-                else
-                {
-                    _hoiVienSelected = null;
-                    OnPropertyChanged(nameof(HoiVienSelected));
-                    OnPropertyChanged(nameof(TenHoiVienHienThi));
-                }
-            } 
+                // Tự điền hội viên theo mã (FirstOrDefault trả null nếu không tìm thấy)
+                _hoiVienSelected = string.IsNullOrEmpty(value)
+                    ? null
+                    : DsHoiVien.FirstOrDefault(h => h.MaHoiVien == value);
+                OnPropertyChanged(nameof(HoiVienSelected));
+                OnPropertyChanged(nameof(TenHoiVienHienThi));
+            }
         }
 
         private DateTime? _ngayDat;
@@ -98,17 +77,16 @@ namespace QuanLySan.ViewModels
         private decimal _tongTien;
         public decimal TongTien { get => _tongTien; set { _tongTien = value; OnPropertyChanged(); } }
 
-        // Mã chi tiết đặt sân hiển thị (read-only, hiển thị mã chi tiết đang chọn trong DataGrid)
-        private string _maChiTietHienThi = "";
-        public string MaChiTietHienThi { get => _maChiTietHienThi; set { _maChiTietHienThi = value; OnPropertyChanged(); } }
-
-        // Bộ đếm mã chi tiết (tự tăng cho mỗi phiếu đặt)
-        private int _chiTietCounter = 0;
+        // Mã chi tiết đặt sân do quản lý nhập để tra cứu khung giờ
+        private string _maChiTietInput = "";
+        public string MaChiTietInput { get => _maChiTietInput; set { _maChiTietInput = value; OnPropertyChanged(); } }
 
         // ── Danh sách hiển thị ──
         public ObservableCollection<San> DsSan { get; } = new();
         public ObservableCollection<HoiVien> DsHoiVien { get; } = new();
         public ObservableCollection<GioSanItem> DsGioDat { get; } = new();
+        // Gợi ý mã chi tiết đặt sân theo sân đang chọn
+        public ObservableCollection<ChiTietGoiY> DsMaChiTiet { get; } = new();
 
         // ── Commands ──
         public ICommand ThemGioCommand { get; }
@@ -116,9 +94,18 @@ namespace QuanLySan.ViewModels
         public ICommand DatSanCommand { get; }
         public ICommand HuyCommand { get; }
 
+        // Constructor mặc định cho View (code-behind: new DatSanViewModel()).
         public DatSanViewModel()
+            : this(new DialogService(), new DanhMucRepository(), new DatSanRepository()) { }
+
+        // Constructor cho phép tiêm phụ thuộc (đúng MVVM, dễ kiểm thử).
+        public DatSanViewModel(IDialogService dialog, DanhMucRepository danhMuc, DatSanRepository datSanRepo)
         {
-            LoadDanhMucTuDatabase();
+            _dialog = dialog;
+            _danhMuc = danhMuc;
+            _datSanRepo = datSanRepo;
+
+            LoadDanhMuc();
 
             // Tự tính lại tổng tiền khi danh sách giờ thay đổi
             DsGioDat.CollectionChanged += DsGioDat_CollectionChanged;
@@ -129,7 +116,6 @@ namespace QuanLySan.ViewModels
                 if (p is GioSanItem item)
                 {
                     DsGioDat.Remove(item);
-                    // Cập nhật lại STT
                     for (int i = 0; i < DsGioDat.Count; i++) DsGioDat[i].STT = i + 1;
                     TinhTongTien();
                 }
@@ -143,163 +129,125 @@ namespace QuanLySan.ViewModels
         }
 
         // ===================== THÊM GIỜ =====================
-        // Tra bảng KHUNGGIO theo MaSan đã chọn, lấy các khung giờ có sẵn → thêm vào DataGrid
+        // Tra bảng CHITIETDATSAN theo MaSan + MaChiTiet đã nhập → hiện khung giờ lên DataGrid
 
         private void ThucHienThemGio()
         {
-            // Validate: phải chọn sân trước
             if (SanSelected == null)
             {
-                MessageBox.Show("Vui lòng chọn mã sân trước!",
-                    "Thiếu thông tin", MessageBoxButton.OK, MessageBoxImage.Warning);
+                _dialog.CanhBao("Vui lòng chọn mã sân trước!", "Thiếu thông tin");
                 return;
             }
 
             // Quy định 4: không cho đặt sân đang bảo trì
             if (SanSelected.MaTinhTrang == MA_TINHTRANG_BAOTRI)
             {
-                MessageBox.Show("Sân này đang bảo trì, không thể đặt!",
-                    "Không hợp lệ", MessageBoxButton.OK, MessageBoxImage.Warning);
+                _dialog.CanhBao("Sân này đang bảo trì, không thể đặt!", "Không hợp lệ");
                 return;
             }
 
+            if (string.IsNullOrWhiteSpace(MaChiTietInput))
+            {
+                _dialog.CanhBao("Vui lòng nhập Mã chi tiết đặt sân để tra cứu!", "Thiếu thông tin");
+                return;
+            }
+
+            TraCuuChiTietDatSan();
+        }
+
+        /// <summary>
+        /// Tra cứu khung giờ của sân theo MaChiTietInput + MaSan đã chọn và hiện lên DataGrid.
+        /// GIỮ NGUYÊN các thông tin khác trên form (mã hội viên, ngày đặt, ghi chú...).
+        /// </summary>
+        private void TraCuuChiTietDatSan()
+        {
             try
             {
-                using var conn = new SqlConnection(_connectionString);
-                conn.Open();
-
-                // Truy vấn bảng KHUNGGIO để lấy các khung giờ có sẵn của sân đã chọn
-                string sql = @"SELECT kg.GioBatDau, kg.GioKetThuc, kg.DonGia, ln.TenLoaiNgay
-                               FROM KHUNGGIO kg
-                               LEFT JOIN LOAINGAY ln ON kg.MaLoaiNgay = ln.MaLoaiNgay
-                               WHERE kg.MaSan = @MaSan";
-                using var cmd = new SqlCommand(sql, conn);
-                cmd.Parameters.AddWithValue("@MaSan", SanSelected.MaSan);
-
-                using var reader = cmd.ExecuteReader();
-
-                int soKhungGioThem = 0;
-                while (reader.Read())
+                var kg = _datSanRepo.TimKhungGio(SanSelected!.MaSan, MaChiTietInput.Trim());
+                if (kg == null)
                 {
-                    TimeSpan gioBD = reader.GetTimeSpan(0);
-                    TimeSpan gioKT = reader.GetTimeSpan(1);
-                    decimal donGia = reader.IsDBNull(2) ? 0 : reader.GetDecimal(2);
-                    string loaiNgay = reader.IsDBNull(3) ? "" : reader.GetString(3);
-
-                    // Kiểm tra trùng khung giờ với các dòng đã thêm
-                    bool biTrung = false;
-                    foreach (var existing in DsGioDat)
-                    {
-                        if (TryParseGio(existing.GioBatDau, out TimeSpan eBd) && TryParseGio(existing.GioKetThuc, out TimeSpan eKt))
-                        {
-                            if (BiTrung(gioBD, gioKT, eBd, eKt))
-                            {
-                                biTrung = true;
-                                break;
-                            }
-                        }
-                    }
-
-                    if (biTrung) continue; // Bỏ qua khung giờ đã có
-
-                    // Phát sinh mã chi tiết tự động
-                    _chiTietCounter++;
-                    string maChiTiet = $"{MaDatSan}-CT{_chiTietCounter:D2}";
-
-                    DsGioDat.Add(new GioSanItem
-                    {
-                        STT = DsGioDat.Count + 1,
-                        MaChiTiet = maChiTiet,
-                        GioBatDau = gioBD.ToString(@"hh\:mm"),
-                        GioKetThuc = gioKT.ToString(@"hh\:mm"),
-                        LoaiNgay = loaiNgay,  // setter sẽ tự tra bảng giá → gán DonGia
-                    });
-                    soKhungGioThem++;
+                    _dialog.ThongBao($"Không tìm thấy khung giờ với mã \"{MaChiTietInput}\" trên sân \"{SanSelected!.MaSan}\".", "Không tìm thấy");
+                    return;
                 }
 
-                if (soKhungGioThem == 0)
+                var (maChiTiet, gioBD, gioKT, loaiNgay, donGia) = kg.Value;
+
+                // Tránh thêm trùng khung giờ đã có trên DataGrid
+                if (DsGioDat.Any(g => g.MaChiTiet == maChiTiet))
                 {
-                    MessageBox.Show($"Sân {SanSelected.MaSan} không có khung giờ nào để thêm (hoặc đã được thêm hết).",
-                        "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+                    _dialog.ThongBao($"Mã chi tiết \"{maChiTiet}\" đã có trong danh sách.", "Đã tồn tại");
+                    return;
                 }
 
-                // Cập nhật mã chi tiết hiển thị (mã cuối cùng)
-                if (DsGioDat.Count > 0)
-                    MaChiTietHienThi = DsGioDat[DsGioDat.Count - 1].MaChiTiet;
+                // Thêm khung giờ vào DataGrid (không xóa dòng cũ, không đụng tới thông tin form)
+                DsGioDat.Add(new GioSanItem
+                {
+                    STT = DsGioDat.Count + 1,
+                    MaChiTiet = maChiTiet,
+                    GioBatDau = gioBD.ToString(@"hh\:mm"),
+                    GioKetThuc = gioKT.ToString(@"hh\:mm"),
+                    LoaiNgay = loaiNgay,
+                    DonGia = donGia
+                });
+
+                MaChiTietInput = "";   // dọn ô nhập để tiếp tục thêm mã khác
+                TinhTongTien();
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Lỗi tra cứu khung giờ sân: " + ex.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+                _dialog.Loi("Lỗi tra cứu chi tiết đặt sân: " + ex.Message);
             }
         }
 
         // ===================== NẠP DỮ LIỆU =====================
 
-        private void LoadDanhMucTuDatabase()
+        private void LoadDanhMuc()
         {
             try
             {
-                using var conn = new SqlConnection(_connectionString);
-                conn.Open();
-
-                // Danh sách sân (kèm tình trạng để chặn sân bảo trì)
-                using (var cmd = new SqlCommand("SELECT MaSan, TenSan, MaTinhTrang FROM SAN", conn))
-                using (var reader = cmd.ExecuteReader())
+                foreach (var s in _danhMuc.LoadSan()) DsSan.Add(s);
+                foreach (var hv in _danhMuc.LoadHoiVien()) DsHoiVien.Add(hv);
+                foreach (var (ma, ten, donGia) in _danhMuc.LoadLoaiNgay())
                 {
-                    while (reader.Read())
-                    {
-                        DsSan.Add(new San
-                        {
-                            MaSan = reader["MaSan"].ToString() ?? "",
-                            TenSan = reader["TenSan"].ToString() ?? "",
-                            MaTinhTrang = reader["MaTinhTrang"].ToString() ?? ""
-                        });
-                    }
-                }
-
-                // Danh sách hội viên
-                using (var cmd = new SqlCommand("SELECT MaHoiVien, HoTen FROM HOIVIEN", conn))
-                using (var reader = cmd.ExecuteReader())
-                {
-                    while (reader.Read())
-                    {
-                        DsHoiVien.Add(new HoiVien
-                        {
-                            MaHoiVien = reader["MaHoiVien"].ToString() ?? "",
-                            HoTen = reader["HoTen"].ToString() ?? ""
-                        });
-                    }
-                }
-
-                // Loại ngày & đơn giá (nạp vào dữ liệu dùng chung của GioSanItem)
-                using (var cmd = new SqlCommand("SELECT MaLoaiNgay, TenLoaiNgay, DonGiaNgay FROM LOAINGAY", conn))
-                using (var reader = cmd.ExecuteReader())
-                {
-                    while (reader.Read())
-                    {
-                        string ma = reader.GetString(0);
-                        string ten = reader.GetString(1);
-                        decimal donGia = reader.GetDecimal(2);
-
-                        if (!GioSanItem.DsLoaiNgay.Contains(ten)) GioSanItem.DsLoaiNgay.Add(ten);
-                        GioSanItem.BangGiaQuyDinh[ten] = donGia;
-                        TiepNhanSanViewModel.MapLoaiNgay[ten] = ma; // tái dùng ánh xạ Tên -> Mã loại ngày
-                    }
+                    if (!GioSanItem.DsLoaiNgay.Contains(ten)) GioSanItem.DsLoaiNgay.Add(ten);
+                    GioSanItem.BangGiaQuyDinh[ten] = donGia;
+                    TiepNhanSanViewModel.MapLoaiNgay[ten] = ma; // tái dùng ánh xạ Tên → Mã loại ngày
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Lỗi kết nối CSDL để nạp danh mục: " + ex.Message);
+                _dialog.Loi("Lỗi kết nối CSDL để nạp danh mục: " + ex.Message);
             }
         }
 
         private void PhatSinhMaDatSan() => MaDatSan = "DS" + new Random().Next(10000, 99999).ToString();
 
+        // Nạp gợi ý mã chi tiết của sân đang chọn (rỗng nếu chưa chọn sân)
+        private void LoadGoiYMaChiTiet()
+        {
+            DsMaChiTiet.Clear();
+            if (SanSelected == null) return;
+            try
+            {
+                foreach (var (ma, bd, kt, loaiNgay) in _datSanRepo.LoadMaChiTietTheoSan(SanSelected.MaSan))
+                {
+                    DsMaChiTiet.Add(new ChiTietGoiY
+                    {
+                        MaChiTiet = ma,
+                        HienThi = $"{bd:hh\\:mm}-{kt:hh\\:mm} ({loaiNgay})"
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                _dialog.Loi("Lỗi nạp gợi ý mã chi tiết: " + ex.Message);
+            }
+        }
+
         // ===================== TÍNH TỔNG TIỀN =====================
 
         private void DsGioDat_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
         {
-            // Lắng nghe thay đổi từng dòng (đổi giờ / loại ngày) để cập nhật tổng tiền
             if (e.NewItems != null)
                 foreach (GioSanItem item in e.NewItems) item.PropertyChanged += GioItem_PropertyChanged;
             if (e.OldItems != null)
@@ -329,15 +277,15 @@ namespace QuanLySan.ViewModels
         private void ThucHienDatSan()
         {
             // 1. Validate thông tin chung
-            if (SanSelected == null) { MessageBox.Show("Vui lòng chọn mã sân!"); return; }
-            if (string.IsNullOrEmpty(MaHoiVien) || HoiVienSelected == null) { MessageBox.Show("Vui lòng nhập mã hội viên hợp lệ!"); return; }
-            if (NgayDat == null) { MessageBox.Show("Vui lòng chọn ngày đặt!"); return; }
-            if (DsGioDat.Count == 0) { MessageBox.Show("Vui lòng thêm ít nhất một khung giờ đặt!"); return; }
+            if (SanSelected == null) { _dialog.CanhBao("Vui lòng chọn mã sân!"); return; }
+            if (string.IsNullOrEmpty(MaHoiVien) || HoiVienSelected == null) { _dialog.CanhBao("Vui lòng nhập mã hội viên hợp lệ!"); return; }
+            if (NgayDat == null) { _dialog.CanhBao("Vui lòng chọn ngày đặt!"); return; }
+            if (DsGioDat.Count == 0) { _dialog.CanhBao("Vui lòng thêm ít nhất một khung giờ đặt!"); return; }
 
             // 2. Quy định 4: không cho đặt sân đang bảo trì
             if (SanSelected.MaTinhTrang == MA_TINHTRANG_BAOTRI)
             {
-                MessageBox.Show("Sân này đang bảo trì, không thể đặt!", "Không hợp lệ", MessageBoxButton.OK, MessageBoxImage.Warning);
+                _dialog.CanhBao("Sân này đang bảo trì, không thể đặt!", "Không hợp lệ");
                 return;
             }
 
@@ -348,17 +296,17 @@ namespace QuanLySan.ViewModels
                 var item = DsGioDat[i];
                 if (!TryParseGio(item.GioBatDau, out TimeSpan bd) || !TryParseGio(item.GioKetThuc, out TimeSpan kt))
                 {
-                    MessageBox.Show($"Dòng {i + 1}: Giờ không hợp lệ (định dạng HH:mm, VD 07:00).", "Sai định dạng", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    _dialog.CanhBao($"Dòng {i + 1}: Giờ không hợp lệ (định dạng HH:mm, VD 07:00).", "Sai định dạng");
                     return;
                 }
                 if (kt <= bd)
                 {
-                    MessageBox.Show($"Dòng {i + 1}: Giờ kết thúc phải lớn hơn giờ bắt đầu.", "Không hợp lệ", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    _dialog.CanhBao($"Dòng {i + 1}: Giờ kết thúc phải lớn hơn giờ bắt đầu.", "Không hợp lệ");
                     return;
                 }
                 if (string.IsNullOrEmpty(item.LoaiNgay))
                 {
-                    MessageBox.Show($"Dòng {i + 1}: Vui lòng chọn loại ngày.", "Thiếu thông tin", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    _dialog.CanhBao($"Dòng {i + 1}: Vui lòng chọn loại ngày.", "Thiếu thông tin");
                     return;
                 }
                 khungGio.Add((bd, kt));
@@ -369,86 +317,44 @@ namespace QuanLySan.ViewModels
                 for (int j = i + 1; j < khungGio.Count; j++)
                     if (BiTrung(khungGio[i].bd, khungGio[i].kt, khungGio[j].bd, khungGio[j].kt))
                     {
-                        MessageBox.Show($"Khung giờ dòng {i + 1} và dòng {j + 1} bị trùng nhau!", "Trùng giờ", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        _dialog.CanhBao($"Khung giờ dòng {i + 1} và dòng {j + 1} bị trùng nhau!", "Trùng giờ");
                         return;
                     }
 
-            using var connection = new SqlConnection(_connectionString);
-            connection.Open();
-            using var trans = connection.BeginTransaction();
+            DateTime ngay = NgayDat.Value.Date;
+            string maSan = SanSelected.MaSan;
+
             try
             {
-                DateTime ngay = NgayDat.Value.Date;
-
-                // 5. Quy định 4: kiểm tra trùng với các khung giờ đã đặt trước đó (cùng sân, cùng ngày)
-                string maSanCheck = SanSelected.MaSan;
+                // 5. Quy định 4: trùng với khung giờ đã được đặt trước đó (cùng sân, cùng ngày)
                 for (int i = 0; i < DsGioDat.Count; i++)
                 {
-                    if (!string.IsNullOrEmpty(maSanCheck) && DemKhungGioTrung(connection, trans, maSanCheck, ngay, khungGio[i].bd, khungGio[i].kt) > 0)
+                    if (_datSanRepo.DemKhungGioTrung(maSan, ngay, khungGio[i].bd, khungGio[i].kt) > 0)
                     {
-                        trans.Rollback();
-                        MessageBox.Show($"Dòng {i + 1} ({DsGioDat[i].GioBatDau}-{DsGioDat[i].GioKetThuc}) trùng với khung giờ đã được đặt!", "Trùng giờ", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        _dialog.CanhBao($"Dòng {i + 1} ({DsGioDat[i].GioBatDau}-{DsGioDat[i].GioKetThuc}) trùng với khung giờ đã được đặt!", "Trùng giờ");
                         return;
                     }
                 }
 
-                // 6. Lưu phiếu đặt vào bảng DATSAN
-                string sqlDatSan = @"INSERT INTO DATSAN (MaDatSan, MaHoiVien, NgayDat, TongTien, GhiChu)
-                                     VALUES (@Ma, @MaHV, @Ngay, @Tong, @GC)";
-                using (var cmd = new SqlCommand(sqlDatSan, connection, trans))
-                {
-                    cmd.Parameters.AddWithValue("@Ma", MaDatSan);
-                    cmd.Parameters.AddWithValue("@MaHV", HoiVienSelected.MaHoiVien);
-                    cmd.Parameters.AddWithValue("@Ngay", ngay);
-                    cmd.Parameters.AddWithValue("@Tong", TongTien);
-                    cmd.Parameters.AddWithValue("@GC", GhiChu ?? "");
-                    cmd.ExecuteNonQuery();
-                }
-
-                // 7. Lưu chi tiết các khung giờ vào bảng CHITIETDATSAN
-                string maSanInsert = SanSelected.MaSan;
+                // 6. Mỗi khung giờ đã chọn = 1 phiếu đặt tham chiếu CHITIETDATSAN
+                var phieuList = new List<(string, string, string, DateTime, decimal, string)>();
                 for (int i = 0; i < DsGioDat.Count; i++)
                 {
                     var item = DsGioDat[i];
-                    string maLoaiNgay = TiepNhanSanViewModel.MapLoaiNgay[item.LoaiNgay];
-                    string sqlCt = @"INSERT INTO CHITIETDATSAN (MaChiTiet, MaDatSan, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay, DonGia)
-                                     VALUES (@MaCT, @Ma, @MaSan, @BD, @KT, @MLN, @Gia)";
-                    using var cmd = new SqlCommand(sqlCt, connection, trans);
-                    cmd.Parameters.AddWithValue("@MaCT", item.MaChiTiet);
-                    cmd.Parameters.AddWithValue("@Ma", MaDatSan);
-                    cmd.Parameters.AddWithValue("@MaSan", maSanInsert);
-                    cmd.Parameters.AddWithValue("@BD", khungGio[i].bd);
-                    cmd.Parameters.AddWithValue("@KT", khungGio[i].kt);
-                    cmd.Parameters.AddWithValue("@MLN", maLoaiNgay);
-                    cmd.Parameters.AddWithValue("@Gia", item.DonGia);
-                    cmd.ExecuteNonQuery();
+                    // Phiếu đầu dùng mã đang hiển thị, các phiếu sau thêm hậu tố để không trùng khóa chính
+                    string maDatSan = i == 0 ? MaDatSan : $"{MaDatSan}-{i}";
+                    decimal tienDong = item.DonGia * (decimal)(khungGio[i].kt - khungGio[i].bd).TotalHours;
+                    phieuList.Add((maDatSan, HoiVienSelected.MaHoiVien, item.MaChiTiet, ngay, tienDong, GhiChu ?? ""));
                 }
 
-                trans.Commit();
-                MessageBox.Show($"Đặt sân thành công!\nMã đặt sân: {MaDatSan}\nTổng tiền: {TongTien:N0} VNĐ", "Thành công", MessageBoxButton.OK, MessageBoxImage.Information);
+                _datSanRepo.ThemPhieuDat(phieuList);
+                _dialog.ThongBao($"Đặt sân thành công!\nMã đặt sân: {MaDatSan}\nTổng tiền: {TongTien:N0} VNĐ", "Thành công");
                 ThucHienHuy();
             }
             catch (Exception ex)
             {
-                trans.Rollback();
-                MessageBox.Show("Lỗi lưu phiếu đặt: " + ex.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+                _dialog.Loi("Lỗi lưu phiếu đặt: " + ex.Message);
             }
-        }
-
-        // Đếm số khung giờ đã đặt bị trùng (cùng sân, cùng ngày) với khoảng [bd, kt)
-        private int DemKhungGioTrung(SqlConnection conn, SqlTransaction trans, string maSan, DateTime ngay, TimeSpan bd, TimeSpan kt)
-        {
-            string sql = @"SELECT COUNT(*)
-                           FROM CHITIETDATSAN ct
-                           JOIN DATSAN d ON ct.MaDatSan = d.MaDatSan
-                           WHERE ct.MaSan = @MaSan AND d.NgayDat = @Ngay
-                                 AND ct.GioBatDau < @KT AND @BD < ct.GioKetThuc";
-            using var cmd = new SqlCommand(sql, conn, trans);
-            cmd.Parameters.AddWithValue("@MaSan", maSan);
-            cmd.Parameters.AddWithValue("@Ngay", ngay);
-            cmd.Parameters.AddWithValue("@BD", bd);
-            cmd.Parameters.AddWithValue("@KT", kt);
-            return Convert.ToInt32(cmd.ExecuteScalar());
         }
 
         private void ThucHienHuy()
@@ -463,8 +369,7 @@ namespace QuanLySan.ViewModels
             NgayDat = DateTime.Now;
             DsGioDat.Clear();
             TongTien = 0;
-            _chiTietCounter = 0;
-            MaChiTietHienThi = "";
+            MaChiTietInput = "";
             PhatSinhMaDatSan();
         }
 

@@ -93,46 +93,27 @@ CREATE TABLE THAMSO (
 );
 
 -- ═══════════════════════════════════════════════════════
--- 10. Bảng Đặt Sân (Sprint 4 – BM4: Phiếu đặt sân)
---     Một phiếu đặt thuộc về 1 Hội Viên,
---     chứa nhiều Chi Tiết Đặt Sân (1:N)
+-- 10. Bảng Chi Tiết Đặt Sân
 -- ═══════════════════════════════════════════════════════
-CREATE TABLE DATSAN (
-    MaDatSan VARCHAR(20) PRIMARY KEY,
-    MaHoiVien VARCHAR(20) NOT NULL REFERENCES HOIVIEN(MaHoiVien),
-    NgayDat DATE NOT NULL,
-    TongTien MONEY DEFAULT 0,
-    GhiChu NVARCHAR(MAX)
-);
-
--- ═══════════════════════════════════════════════════════
--- 11. Bảng Khung Giờ Mặc Định của Sân (Tiếp nhận sân)
---     Lưu các khung giờ có thể đặt trên mỗi sân
---     Được tạo khi Tiếp nhận sân (BM3)
--- ═══════════════════════════════════════════════════════
-CREATE TABLE KHUNGGIO (
-    MaKhungGio INT IDENTITY(1,1) PRIMARY KEY,
+CREATE TABLE CHITIETDATSAN (
+    MaChiTiet VARCHAR(20) PRIMARY KEY,
     MaSan VARCHAR(20) NOT NULL REFERENCES SAN(MaSan),
     GioBatDau TIME NOT NULL,
     GioKetThuc TIME NOT NULL,
-    MaLoaiNgay CHAR(2) REFERENCES LOAINGAY(MaLoaiNgay),
-    DonGia MONEY
+    MaLoaiNgay CHAR(2) REFERENCES LOAINGAY(MaLoaiNgay)
 );
 GO
 
 -- ═══════════════════════════════════════════════════════
--- 12. Bảng Chi Tiết Đặt Sân (Sprint 4)
---     Mỗi dòng = 1 khung giờ đặt trên 1 sân cụ thể
---     Nhiều chi tiết thuộc về 1 phiếu DATSAN
+-- 11. Bảng Đặt Sân
 -- ═══════════════════════════════════════════════════════
-CREATE TABLE CHITIETDATSAN (
-    MaChiTiet VARCHAR(20) PRIMARY KEY,
-    MaDatSan VARCHAR(20) NOT NULL REFERENCES DATSAN(MaDatSan),
-    MaSan VARCHAR(20) NOT NULL REFERENCES SAN(MaSan),
-    GioBatDau TIME NOT NULL,
-    GioKetThuc TIME NOT NULL,
-    MaLoaiNgay CHAR(2) REFERENCES LOAINGAY(MaLoaiNgay),
-    DonGia MONEY
+CREATE TABLE DATSAN (
+    MaDatSan VARCHAR(20) PRIMARY KEY,
+    MaHoiVien VARCHAR(20) NOT NULL REFERENCES HOIVIEN(MaHoiVien),
+    MaChiTiet VARCHAR(20) REFERENCES CHITIETDATSAN(MaChiTiet),
+    NgayDat DATE NOT NULL,
+    TongTien MONEY DEFAULT 0,
+    GhiChu NVARCHAR(MAX)
 );
 GO
 

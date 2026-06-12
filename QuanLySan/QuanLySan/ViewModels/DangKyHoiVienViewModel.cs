@@ -1,16 +1,21 @@
 #nullable enable
 using System;
-using System.Windows;
+using System.Linq;
 using System.Windows.Input;
-using Microsoft.Data.SqlClient;
+using QuanLySan.Data;
 using QuanLySan.Models;
+using QuanLySan.Services;
 using QuanLySan.ViewModels.Base;
 
 namespace QuanLySan.ViewModels
 {
+    // Đăng ký hội viên (BM2). Quy định 2: hội viên mới có điểm 0, loại "Đồng".
     public class DangKyHoiVienViewModel : BaseViewModel
     {
-        private string _connectionString = DatabaseConfig.ConnectionString;
+        private const string MA_LOAI_HOIVIEN_MACDINH = "DO"; // Loại Đồng mặc định
+
+        private readonly IDialogService _dialog;
+        private readonly HoiVienRepository _hoiVienRepo;
 
         // Dữ liệu nhập liệu
         private string _maHoiVien = "";
@@ -41,9 +46,16 @@ namespace QuanLySan.ViewModels
         public ICommand DangKyCommand { get; }
         public ICommand LamMoiCommand { get; }
 
+        // Constructor mặc định cho View (code-behind: new DangKyHoiVienViewModel()).
         public DangKyHoiVienViewModel()
+            : this(new DialogService(), new HoiVienRepository()) { }
+
+        // Constructor cho phép tiêm phụ thuộc (đúng MVVM, dễ kiểm thử).
+        public DangKyHoiVienViewModel(IDialogService dialog, HoiVienRepository hoiVienRepo)
         {
-            // Ngày đăng ký mặc định là ngày hiện hành
+            _dialog = dialog;
+            _hoiVienRepo = hoiVienRepo;
+
             NgayDangKy = DateTime.Now;
 
             DangKyCommand = new RelayCommand(_ => ThucHienDangKy());
@@ -69,66 +81,42 @@ namespace QuanLySan.ViewModels
 
         private void ThucHienDangKy()
         {
-            // Validate dữ liệu bắt buộc
-            if (string.IsNullOrWhiteSpace(TenHoiVien))
+            // Validate dữ liệu bắt buộc (logic trình bày → giữ ở ViewModel)
+            if (string.IsNullOrWhiteSpace(TenHoiVien)) { _dialog.CanhBao("Vui lòng nhập họ tên hội viên!", "Thiếu thông tin"); return; }
+            if (TenHoiVien.Any(char.IsDigit)) { _dialog.CanhBao("Họ tên không được chứa chữ số!", "Không hợp lệ"); return; }
+
+            if (string.IsNullOrWhiteSpace(SDT)) { _dialog.CanhBao("Vui lòng nhập số điện thoại!", "Thiếu thông tin"); return; }
+            if (SDT.Trim().Length != 10 || !SDT.Trim().All(char.IsDigit)) { _dialog.CanhBao("Số điện thoại phải gồm đúng 10 chữ số!", "Không hợp lệ"); return; }
+
+            if (string.IsNullOrWhiteSpace(Email)) { _dialog.CanhBao("Vui lòng nhập Email!", "Thiếu thông tin"); return; }
+            if (!Email.Contains("@")) { _dialog.CanhBao("Email không hợp lệ! Email phải chứa ký tự \"@\".", "Không hợp lệ"); return; }
+
+            var hv = new HoiVien
             {
-                MessageBox.Show("Vui lòng nhập họ tên hội viên!", "Thiếu thông tin", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
+                MaHoiVien = MaHoiVien,
+                HoTen = TenHoiVien,
+                SDT = SDT,
+                Email = Email,
+                GioiTinh = GioiTinh,
+                NgayDangKy = NgayDangKy,
+                GhiChu = GhiChu ?? ""
+            };
+
+            try
+            {
+                _hoiVienRepo.ThemHoiVien(hv, MA_LOAI_HOIVIEN_MACDINH);
+                _dialog.ThongBao(
+                    $"Đăng ký hội viên thành công!\n\n" +
+                    $"Mã HV: {MaHoiVien}\n" +
+                    $"Họ tên: {TenHoiVien}\n" +
+                    $"SĐT: {SDT}\n" +
+                    $"Email: {Email}",
+                    "Thành công");
+                ThucHienLamMoi();
             }
-            if (string.IsNullOrWhiteSpace(SDT))
+            catch (Exception ex)
             {
-                MessageBox.Show("Vui lòng nhập số điện thoại!", "Thiếu thông tin", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
-
-            if (string.IsNullOrWhiteSpace(Email))
-            {
-                MessageBox.Show("Vui lòng nhập Email!", "Thiếu thông tin", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
-
-            using (SqlConnection conn = new SqlConnection(_connectionString))
-            {
-                conn.Open();
-                using (SqlTransaction trans = conn.BeginTransaction())
-                {
-                    try
-                    {
-                        // Lưu thông tin Hội Viên thẳng vào bảng (Đơn giản và tối ưu)
-                        string maLoaiHV = "DO"; // Loại Đồng mặc định
-                        string sqlHV = @"INSERT INTO HOIVIEN (MaHoiVien, HoTen, SDT, Email, GioiTinh, NgayDangKyHoiVien, DiemTichLuy, MaLoaiHoiVien, GhiChu)
-                                         VALUES (@Ma, @Ten, @SDT, @Email, @GioiTinh, @Ngay, 0, @Loai, @GhiChu)";
-                        using (SqlCommand cmd = new SqlCommand(sqlHV, conn, trans)) {
-                            cmd.Parameters.AddWithValue("@Ma", MaHoiVien);
-                            cmd.Parameters.AddWithValue("@Ten", TenHoiVien);
-                            cmd.Parameters.AddWithValue("@SDT", SDT);
-                            cmd.Parameters.AddWithValue("@Email", Email);
-                            cmd.Parameters.AddWithValue("@GioiTinh", GioiTinh);
-                            cmd.Parameters.AddWithValue("@Ngay", NgayDangKy ?? DateTime.Now);
-                            cmd.Parameters.AddWithValue("@Loai", maLoaiHV);
-                            cmd.Parameters.AddWithValue("@GhiChu", GhiChu ?? "");
-                            cmd.ExecuteNonQuery();
-                        }
-
-                        // Nếu không có lỗi gì thì Commit transaction (lưu chính thức)
-                        trans.Commit();
-                        
-                        MessageBox.Show(
-                            $"Đăng ký hội viên thành công!\n\n" +
-                            $"Mã HV: {MaHoiVien}\n" +
-                            $"Họ tên: {TenHoiVien}\n" +
-                            $"SĐT: {SDT}\n" +
-                            $"Email: {Email}",
-                            "Thành công", MessageBoxButton.OK, MessageBoxImage.Information);
-
-                        ThucHienLamMoi();
-                    }
-                    catch (Exception ex)
-                    {
-                        trans.Rollback();
-                        MessageBox.Show("Lỗi lưu dữ liệu: " + ex.Message + "\n(Lưu ý: SĐT hoặc Email có thể đã tồn tại!)", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
-                    }
-                }
+                _dialog.Loi("Lỗi lưu dữ liệu: " + ex.Message + "\n(Lưu ý: SĐT hoặc Email có thể đã tồn tại!)");
             }
         }
     }
