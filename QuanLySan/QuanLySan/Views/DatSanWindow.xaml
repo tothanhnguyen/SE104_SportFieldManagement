@@ -177,7 +177,7 @@
 
                         <StackPanel Grid.Column="0">
                             <TextBlock Text="Mã chi tiết đặt sân" Style="{StaticResource FieldLabel}"/>
-                            <TextBox Style="{StaticResource SimpleTextBox}" Text="{Binding MaChiTietHienThi, Mode=OneWay}" IsReadOnly="True" Background="#F0F0F0"/>
+                            <TextBox Style="{StaticResource SimpleTextBox}" Text="{Binding MaChiTietInput, UpdateSourceTrigger=PropertyChanged}"/>
                         </StackPanel>
 
                         <StackPanel Grid.Column="2">

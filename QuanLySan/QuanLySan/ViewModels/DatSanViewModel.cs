@@ -102,6 +102,10 @@ namespace QuanLySan.ViewModels
         private string _maChiTietHienThi = "";
         public string MaChiTietHienThi { get => _maChiTietHienThi; set { _maChiTietHienThi = value; OnPropertyChanged(); } }
 
+        // Mã chi tiết đặt sân nhập bởi người dùng (editable)
+        private string _maChiTietInput = "";
+        public string MaChiTietInput { get => _maChiTietInput; set { _maChiTietInput = value; OnPropertyChanged(); } }
+
         // Bộ đếm mã chi tiết (tự tăng cho mỗi phiếu đặt)
         private int _chiTietCounter = 0;
 
@@ -163,75 +167,139 @@ namespace QuanLySan.ViewModels
                 return;
             }
 
+            // Nếu có nhập Mã chi tiết đặt sân → tra cứu chi tiết từ CSDL
+            if (!string.IsNullOrWhiteSpace(MaChiTietInput))
+            {
+                TraCuuChiTietDatSan();
+                return;
+            }
+
+            // Chưa nhập Mã chi tiết → yêu cầu nhập
+            MessageBox.Show("Vui lòng nhập Mã chi tiết đặt sân để tra cứu!",
+                "Thiếu thông tin", MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
+
+        /// <summary>
+        /// Tra cứu chi tiết đặt sân từ bảng CHITIETDATSAN theo MaChiTietInput và MaSan đã chọn.
+        /// Hiển thị thông tin chi tiết (giờ bắt đầu, kết thúc, loại ngày, đơn giá) lên DataGrid.
+        /// Đồng thời nạp thông tin phiếu đặt (MaDatSan, NgayDat, MaHoiVien, TenHoiVien, GhiChu, TongTien).
+        /// </summary>
+        private void TraCuuChiTietDatSan()
+        {
             try
             {
                 using var conn = new SqlConnection(_connectionString);
                 conn.Open();
 
-                // Truy vấn bảng KHUNGGIO để lấy các khung giờ có sẵn của sân đã chọn
-                string sql = @"SELECT kg.GioBatDau, kg.GioKetThuc, kg.DonGia, ln.TenLoaiNgay
-                               FROM KHUNGGIO kg
-                               LEFT JOIN LOAINGAY ln ON kg.MaLoaiNgay = ln.MaLoaiNgay
-                               WHERE kg.MaSan = @MaSan";
+                // Truy vấn chi tiết đặt sân kèm thông tin phiếu đặt và hội viên
+                string sql = @"SELECT ct.MaChiTiet, ct.GioBatDau, ct.GioKetThuc, ct.DonGia,
+                                      ln.TenLoaiNgay,
+                                      d.MaDatSan, d.NgayDat, d.TongTien, d.GhiChu,
+                                      hv.MaHoiVien, hv.HoTen
+                               FROM CHITIETDATSAN ct
+                               JOIN DATSAN d ON ct.MaDatSan = d.MaDatSan
+                               JOIN HOIVIEN hv ON d.MaHoiVien = hv.MaHoiVien
+                               LEFT JOIN LOAINGAY ln ON ct.MaLoaiNgay = ln.MaLoaiNgay
+                               WHERE ct.MaChiTiet = @MaChiTiet AND ct.MaSan = @MaSan";
+
                 using var cmd = new SqlCommand(sql, conn);
-                cmd.Parameters.AddWithValue("@MaSan", SanSelected.MaSan);
+                cmd.Parameters.AddWithValue("@MaChiTiet", MaChiTietInput.Trim());
+                cmd.Parameters.AddWithValue("@MaSan", SanSelected!.MaSan);
 
                 using var reader = cmd.ExecuteReader();
 
-                int soKhungGioThem = 0;
-                while (reader.Read())
+                if (reader.Read())
                 {
-                    TimeSpan gioBD = reader.GetTimeSpan(0);
-                    TimeSpan gioKT = reader.GetTimeSpan(1);
-                    decimal donGia = reader.IsDBNull(2) ? 0 : reader.GetDecimal(2);
-                    string loaiNgay = reader.IsDBNull(3) ? "" : reader.GetString(3);
+                    // Nạp thông tin phiếu đặt sân
+                    string maDatSanDB = reader["MaDatSan"]?.ToString() ?? "";
+                    DateTime ngayDatDB = reader.GetDateTime(reader.GetOrdinal("NgayDat"));
+                    decimal tongTienDB = reader.IsDBNull(reader.GetOrdinal("TongTien")) ? 0 : reader.GetDecimal(reader.GetOrdinal("TongTien"));
+                    string ghiChuDB = reader["GhiChu"]?.ToString() ?? "";
+                    string maHvDB = reader["MaHoiVien"]?.ToString() ?? "";
+                    string tenHvDB = reader["HoTen"]?.ToString() ?? "";
 
-                    // Kiểm tra trùng khung giờ với các dòng đã thêm
-                    bool biTrung = false;
-                    foreach (var existing in DsGioDat)
+                    // Cập nhật thông tin phiếu lên form
+                    MaDatSan = maDatSanDB;
+                    NgayDat = ngayDatDB;
+                    TongTien = tongTienDB;
+                    GhiChu = ghiChuDB;
+
+                    // Cập nhật hội viên
+                    _maHoiVien = maHvDB;
+                    OnPropertyChanged(nameof(MaHoiVien));
+                    _hoiVienSelected = DsHoiVien.FirstOrDefault(h => h.MaHoiVien == maHvDB);
+                    if (_hoiVienSelected == null)
                     {
-                        if (TryParseGio(existing.GioBatDau, out TimeSpan eBd) && TryParseGio(existing.GioKetThuc, out TimeSpan eKt))
-                        {
-                            if (BiTrung(gioBD, gioKT, eBd, eKt))
-                            {
-                                biTrung = true;
-                                break;
-                            }
-                        }
+                        // Nếu hội viên chưa có trong danh sách, tạo tạm để hiển thị
+                        _hoiVienSelected = new HoiVien { MaHoiVien = maHvDB, HoTen = tenHvDB };
                     }
+                    OnPropertyChanged(nameof(HoiVienSelected));
+                    OnPropertyChanged(nameof(TenHoiVienHienThi));
 
-                    if (biTrung) continue; // Bỏ qua khung giờ đã có
+                    // Nạp chi tiết đặt sân vào DataGrid
+                    string maChiTiet = reader["MaChiTiet"]?.ToString() ?? "";
+                    TimeSpan gioBD = reader.GetTimeSpan(reader.GetOrdinal("GioBatDau"));
+                    TimeSpan gioKT = reader.GetTimeSpan(reader.GetOrdinal("GioKetThuc"));
+                    decimal donGia = reader.IsDBNull(reader.GetOrdinal("DonGia")) ? 0 : reader.GetDecimal(reader.GetOrdinal("DonGia"));
+                    string loaiNgay = reader.IsDBNull(reader.GetOrdinal("TenLoaiNgay")) ? "" : reader.GetString(reader.GetOrdinal("TenLoaiNgay"));
 
-                    // Phát sinh mã chi tiết tự động
-                    _chiTietCounter++;
-                    string maChiTiet = $"{MaDatSan}-CT{_chiTietCounter:D2}";
-
+                    // Xóa danh sách cũ và thêm chi tiết tra cứu được
+                    DsGioDat.Clear();
                     DsGioDat.Add(new GioSanItem
                     {
-                        STT = DsGioDat.Count + 1,
+                        STT = 1,
                         MaChiTiet = maChiTiet,
                         GioBatDau = gioBD.ToString(@"hh\:mm"),
                         GioKetThuc = gioKT.ToString(@"hh\:mm"),
-                        LoaiNgay = loaiNgay,  // setter sẽ tự tra bảng giá → gán DonGia
+                        LoaiNgay = loaiNgay,
+                        DonGia = donGia
                     });
-                    soKhungGioThem++;
-                }
 
-                if (soKhungGioThem == 0)
+                    // Đọc thêm các chi tiết khác cùng phiếu đặt (nếu có)
+                    // Đóng reader hiện tại trước
+                    reader.Close();
+
+                    // Truy vấn thêm các chi tiết cùng MaDatSan và MaSan (ngoại trừ chi tiết đã nạp)
+                    string sqlOther = @"SELECT ct.MaChiTiet, ct.GioBatDau, ct.GioKetThuc, ct.DonGia, ln.TenLoaiNgay
+                                        FROM CHITIETDATSAN ct
+                                        LEFT JOIN LOAINGAY ln ON ct.MaLoaiNgay = ln.MaLoaiNgay
+                                        WHERE ct.MaDatSan = @MaDatSan AND ct.MaSan = @MaSan AND ct.MaChiTiet <> @MaChiTiet
+                                        ORDER BY ct.GioBatDau";
+                    using var cmdOther = new SqlCommand(sqlOther, conn);
+                    cmdOther.Parameters.AddWithValue("@MaDatSan", maDatSanDB);
+                    cmdOther.Parameters.AddWithValue("@MaSan", SanSelected!.MaSan);
+                    cmdOther.Parameters.AddWithValue("@MaChiTiet", MaChiTietInput.Trim());
+
+                    using var readerOther = cmdOther.ExecuteReader();
+                    while (readerOther.Read())
+                    {
+                        DsGioDat.Add(new GioSanItem
+                        {
+                            STT = DsGioDat.Count + 1,
+                            MaChiTiet = readerOther["MaChiTiet"]?.ToString() ?? "",
+                            GioBatDau = readerOther.GetTimeSpan(readerOther.GetOrdinal("GioBatDau")).ToString(@"hh\:mm"),
+                            GioKetThuc = readerOther.GetTimeSpan(readerOther.GetOrdinal("GioKetThuc")).ToString(@"hh\:mm"),
+                            LoaiNgay = readerOther.IsDBNull(readerOther.GetOrdinal("TenLoaiNgay")) ? "" : readerOther.GetString(readerOther.GetOrdinal("TenLoaiNgay")),
+                            DonGia = readerOther.IsDBNull(readerOther.GetOrdinal("DonGia")) ? 0 : readerOther.GetDecimal(readerOther.GetOrdinal("DonGia"))
+                        });
+                    }
+
+                    MaChiTietHienThi = maChiTiet;
+                    TinhTongTien();
+                }
+                else
                 {
-                    MessageBox.Show($"Sân {SanSelected.MaSan} không có khung giờ nào để thêm (hoặc đã được thêm hết).",
-                        "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+                    MessageBox.Show($"Không tìm thấy chi tiết đặt sân với mã \"{MaChiTietInput}\" trên sân \"{SanSelected!.MaSan}\".",
+                        "Không tìm thấy", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
-
-                // Cập nhật mã chi tiết hiển thị (mã cuối cùng)
-                if (DsGioDat.Count > 0)
-                    MaChiTietHienThi = DsGioDat[DsGioDat.Count - 1].MaChiTiet;
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Lỗi tra cứu khung giờ sân: " + ex.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show("Lỗi tra cứu chi tiết đặt sân: " + ex.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
+
+
 
         // ===================== NẠP DỮ LIỆU =====================
 
@@ -465,6 +533,7 @@ namespace QuanLySan.ViewModels
             TongTien = 0;
             _chiTietCounter = 0;
             MaChiTietHienThi = "";
+            MaChiTietInput = "";
             PhatSinhMaDatSan();
         }
 

@@ -46,7 +46,6 @@ namespace QuanLySan.ViewModels
 
         // Commands
         public ICommand ThemGioCommand { get; }
-        public ICommand XoaGioCommand { get; }
         public ICommand LuuCommand { get; }
         public ICommand HuyCommand { get; }
 
@@ -63,14 +62,6 @@ namespace QuanLySan.ViewModels
                     GioKetThuc = "08:00",
                     LoaiNgay = GioSanItem.DsLoaiNgay.Count > 0 ? GioSanItem.DsLoaiNgay[0] : ""
                 });
-            });
-
-            XoaGioCommand = new RelayCommand(p => {
-                if (p is GioSanItem item)
-                {
-                    DsGioSan.Remove(item);
-                    for (int i = 0; i < DsGioSan.Count; i++) DsGioSan[i].STT = i + 1;
-                }
             });
 
             LuuCommand = new RelayCommand(_ => ThucHienLuu());
@@ -230,21 +221,24 @@ namespace QuanLySan.ViewModels
                             cmd.ExecuteNonQuery();
                         }
 
-                        // Lưu vào bảng KHUNGGIO (khung giờ mặc định của sân)
+                        // Lưu giờ sân vào bảng CHITIETDATSAN
+                        int chiTietCounter = 0;
                         foreach (var item in DsGioSan)
                         {
+                            chiTietCounter++;
+                            string maChiTiet = $"{MaSan}-CT{chiTietCounter:D2}";
                             string maLoaiNgay = MapLoaiNgay[item.LoaiNgay];
                             TryParseGio(item.GioBatDau, out TimeSpan gioBD);
                             TryParseGio(item.GioKetThuc, out TimeSpan gioKT);
 
-                            string sqlGio = "INSERT INTO KHUNGGIO (MaSan, GioBatDau, GioKetThuc, MaLoaiNgay, DonGia) VALUES (@MaSan, @BD, @KT, @MLN, @Gia)";
-                            using (SqlCommand cmd = new SqlCommand(sqlGio, conn, trans))
+                            string sqlCt = "INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES (@MaCT, @MaSan, @BD, @KT, @MLN)";
+                            using (SqlCommand cmd = new SqlCommand(sqlCt, conn, trans))
                             {
+                                cmd.Parameters.AddWithValue("@MaCT", maChiTiet);
                                 cmd.Parameters.AddWithValue("@MaSan", MaSan);
                                 cmd.Parameters.AddWithValue("@BD", gioBD);
                                 cmd.Parameters.AddWithValue("@KT", gioKT);
                                 cmd.Parameters.AddWithValue("@MLN", maLoaiNgay);
-                                cmd.Parameters.AddWithValue("@Gia", item.DonGia);
                                 cmd.ExecuteNonQuery();
                             }
                         }

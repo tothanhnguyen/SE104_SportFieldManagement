@@ -1,5 +1,6 @@
 #nullable enable
 using System;
+using System.Linq;
 using System.Windows;
 using System.Windows.Input;
 using Microsoft.Data.SqlClient;
@@ -75,15 +76,34 @@ namespace QuanLySan.ViewModels
                 MessageBox.Show("Vui lòng nhập họ tên hội viên!", "Thiếu thông tin", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
+            // Họ tên không được chứa chữ số
+            if (TenHoiVien.Any(char.IsDigit))
+            {
+                MessageBox.Show("Họ tên không được chứa chữ số!", "Không hợp lệ", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
             if (string.IsNullOrWhiteSpace(SDT))
             {
                 MessageBox.Show("Vui lòng nhập số điện thoại!", "Thiếu thông tin", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+            // Số điện thoại phải đúng 10 chữ số (có thể bắt đầu bằng 0)
+            if (SDT.Trim().Length != 10 || !SDT.Trim().All(char.IsDigit))
+            {
+                MessageBox.Show("Số điện thoại phải gồm đúng 10 chữ số!", "Không hợp lệ", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
             if (string.IsNullOrWhiteSpace(Email))
             {
                 MessageBox.Show("Vui lòng nhập Email!", "Thiếu thông tin", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+            // Email phải chứa ký tự "@"
+            if (!Email.Contains("@"))
+            {
+                MessageBox.Show("Email không hợp lệ! Email phải chứa ký tự \"@\".", "Không hợp lệ", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
