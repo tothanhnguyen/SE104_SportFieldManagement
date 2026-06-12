@@ -35,6 +35,32 @@ namespace QuanLySan.Data
             );
         }
 
+        // Nạp danh sách mã chi tiết của 1 sân để gợi ý khi nhập (kèm khung giờ + loại ngày để hiển thị).
+        public List<(string MaChiTiet, TimeSpan GioBatDau, TimeSpan GioKetThuc, string LoaiNgay)> LoadMaChiTietTheoSan(string maSan)
+        {
+            var ds = new List<(string, TimeSpan, TimeSpan, string)>();
+            string sql = @"SELECT ct.MaChiTiet, ct.GioBatDau, ct.GioKetThuc, ln.TenLoaiNgay
+                           FROM CHITIETDATSAN ct
+                           LEFT JOIN LOAINGAY ln ON ct.MaLoaiNgay = ln.MaLoaiNgay
+                           WHERE ct.MaSan = @MaSan
+                           ORDER BY ct.GioBatDau";
+            using var conn = new SqlConnection(_connectionString);
+            conn.Open();
+            using var cmd = new SqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@MaSan", maSan);
+            using var reader = cmd.ExecuteReader();
+            while (reader.Read())
+            {
+                ds.Add((
+                    reader["MaChiTiet"]?.ToString() ?? "",
+                    reader.GetTimeSpan(reader.GetOrdinal("GioBatDau")),
+                    reader.GetTimeSpan(reader.GetOrdinal("GioKetThuc")),
+                    reader.IsDBNull(reader.GetOrdinal("TenLoaiNgay")) ? "" : reader.GetString(reader.GetOrdinal("TenLoaiNgay"))
+                ));
+            }
+            return ds;
+        }
+
         // Quy định 4: đếm số khung giờ đã được đặt bị trùng giờ (cùng sân, cùng ngày) với [bd, kt).
         public int DemKhungGioTrung(string maSan, DateTime ngay, TimeSpan bd, TimeSpan kt)
         {

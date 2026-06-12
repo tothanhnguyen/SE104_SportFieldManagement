@@ -152,7 +152,24 @@
 
                         <StackPanel Grid.Column="2">
                             <TextBlock Text="Mã hội viên" Style="{StaticResource FieldLabel}"/>
-                            <TextBox Style="{StaticResource SimpleTextBox}" Text="{Binding MaHoiVien, UpdateSourceTrigger=PropertyChanged}"/>
+                            <!-- ComboBox editable: gõ để lọc/gợi ý mã hội viên, dropdown hiện Mã - Tên -->
+                            <ComboBox Style="{StaticResource SimpleComboBox}"
+                                      IsEditable="True"
+                                      IsTextSearchEnabled="True"
+                                      StaysOpenOnEdit="True"
+                                      TextSearch.TextPath="MaHoiVien"
+                                      ItemsSource="{Binding DsHoiVien}"
+                                      Text="{Binding MaHoiVien, UpdateSourceTrigger=PropertyChanged}">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="{Binding MaHoiVien}" FontWeight="SemiBold"/>
+                                            <TextBlock Text=" - "/>
+                                            <TextBlock Text="{Binding HoTen}" Foreground="#666666"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
                         </StackPanel>
 
                         <StackPanel Grid.Column="4">
@@ -177,7 +194,24 @@
 
                         <StackPanel Grid.Column="0">
                             <TextBlock Text="Mã chi tiết đặt sân" Style="{StaticResource FieldLabel}"/>
-                            <TextBox Style="{StaticResource SimpleTextBox}" Text="{Binding MaChiTietInput, UpdateSourceTrigger=PropertyChanged}"/>
+                            <!-- ComboBox editable: gõ để gợi ý mã chi tiết theo sân, dropdown hiện Mã + khung giờ -->
+                            <ComboBox Style="{StaticResource SimpleComboBox}"
+                                      IsEditable="True"
+                                      IsTextSearchEnabled="True"
+                                      StaysOpenOnEdit="True"
+                                      TextSearch.TextPath="MaChiTiet"
+                                      ItemsSource="{Binding DsMaChiTiet}"
+                                      Text="{Binding MaChiTietInput, UpdateSourceTrigger=PropertyChanged}">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="{Binding MaChiTiet}" FontWeight="SemiBold"/>
+                                            <TextBlock Text="  "/>
+                                            <TextBlock Text="{Binding HienThi}" Foreground="#666666"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
                         </StackPanel>
 
                         <StackPanel Grid.Column="2">

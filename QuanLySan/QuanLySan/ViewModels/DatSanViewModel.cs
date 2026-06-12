@@ -39,6 +39,8 @@ namespace QuanLySan.ViewModels
                 // Khi chọn sân mới, xóa danh sách giờ cũ
                 DsGioDat.Clear();
                 TongTien = 0;
+                // Nạp gợi ý mã chi tiết theo sân vừa chọn
+                LoadGoiYMaChiTiet();
             }
         }
 
@@ -83,6 +85,8 @@ namespace QuanLySan.ViewModels
         public ObservableCollection<San> DsSan { get; } = new();
         public ObservableCollection<HoiVien> DsHoiVien { get; } = new();
         public ObservableCollection<GioSanItem> DsGioDat { get; } = new();
+        // Gợi ý mã chi tiết đặt sân theo sân đang chọn
+        public ObservableCollection<ChiTietGoiY> DsMaChiTiet { get; } = new();
 
         // ── Commands ──
         public ICommand ThemGioCommand { get; }
@@ -217,6 +221,28 @@ namespace QuanLySan.ViewModels
         }
 
         private void PhatSinhMaDatSan() => MaDatSan = "DS" + new Random().Next(10000, 99999).ToString();
+
+        // Nạp gợi ý mã chi tiết của sân đang chọn (rỗng nếu chưa chọn sân)
+        private void LoadGoiYMaChiTiet()
+        {
+            DsMaChiTiet.Clear();
+            if (SanSelected == null) return;
+            try
+            {
+                foreach (var (ma, bd, kt, loaiNgay) in _datSanRepo.LoadMaChiTietTheoSan(SanSelected.MaSan))
+                {
+                    DsMaChiTiet.Add(new ChiTietGoiY
+                    {
+                        MaChiTiet = ma,
+                        HienThi = $"{bd:hh\\:mm}-{kt:hh\\:mm} ({loaiNgay})"
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                _dialog.Loi("Lỗi nạp gợi ý mã chi tiết: " + ex.Message);
+            }
+        }
 
         // ===================== TÍNH TỔNG TIỀN =====================
 
