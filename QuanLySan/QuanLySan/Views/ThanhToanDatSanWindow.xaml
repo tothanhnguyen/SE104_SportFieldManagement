@@ -1,0 +1,199 @@
+<Window
+        x:Class="QuanLySan.Views.ThanhToanDatSanWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Thanh toán đặt sân"
+        Width="850" Height="380"
+        WindowStartupLocation="CenterScreen"
+        ResizeMode="NoResize"
+        Background="Transparent"
+        FontFamily="Segoe UI"
+        FontSize="13"
+        WindowStyle="None"
+        AllowsTransparency="True">
+
+    <Window.Resources>
+        <!-- ===== COLOR PALETTE ===== -->
+        <SolidColorBrush x:Key="PrimaryBrush" Color="#1B2A4A"/>
+        <SolidColorBrush x:Key="TextPrimary" Color="#222222"/>
+        <SolidColorBrush x:Key="InputBorder" Color="#CCCCCC"/>
+        <SolidColorBrush x:Key="DisabledBackground" Color="#D3D3D3"/>
+
+        <Style x:Key="SimpleTextBox" TargetType="{x:Type TextBox}">
+            <Setter Property="Height" Value="28"/>
+            <Setter Property="Padding" Value="6,4"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="{StaticResource InputBorder}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+        </Style>
+
+        <Style x:Key="DisabledTextBox" TargetType="{x:Type TextBox}" BasedOn="{StaticResource SimpleTextBox}">
+            <Setter Property="Background" Value="{StaticResource DisabledBackground}"/>
+            <Setter Property="IsReadOnly" Value="True"/>
+            <Setter Property="Foreground" Value="#666666"/>
+        </Style>
+
+        <Style x:Key="SimpleComboBox" TargetType="{x:Type ComboBox}">
+            <Setter Property="Height" Value="28"/>
+            <Setter Property="Padding" Value="6,4"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="{StaticResource InputBorder}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+        </Style>
+
+        <Style x:Key="FieldLabel" TargetType="{x:Type TextBlock}">
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+            <Setter Property="Margin" Value="0,0,0,4"/>
+        </Style>
+
+        <Style x:Key="SimpleButton" TargetType="{x:Type Button}">
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="MinWidth" Value="90"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Padding" Value="14,0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="{StaticResource InputBorder}"/>
+            <Setter Property="Background" Value="#F0F0F0"/>
+        </Style>
+    </Window.Resources>
+
+    <Border Background="White" ClipToBounds="True" CornerRadius="5">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <!-- ===== HEADER BAR ===== -->
+            <Border Grid.Row="0"
+                    Background="{StaticResource PrimaryBrush}"
+                    Padding="20,12"
+                    MouseLeftButtonDown="Header_MouseLeftButtonDown"
+                    CornerRadius="5,5,0,0">
+                <Grid>
+                    <TextBlock Text="Thanh toán đặt sân"
+                               FontSize="18" FontWeight="Bold"
+                               Foreground="White" VerticalAlignment="Center"/>
+                    <Button Content="✕"
+                            HorizontalAlignment="Right" VerticalAlignment="Center"
+                            FontSize="16" FontWeight="Bold"
+                            Foreground="White" Background="Transparent"
+                            BorderThickness="0" Cursor="Hand"
+                            Click="BtnThoat_Click" Width="28" Height="28"/>
+                </Grid>
+            </Border>
+
+            <!-- ===== CONTENT ===== -->
+            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="20,14,20,16">
+                <StackPanel>
+
+                    <!-- ── ROW 1: Mã đặt sân | Tên sân | Mã hội viên | Tên hội viên ── -->
+                    <Grid Margin="0,0,0,12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="8"/>
+                            <ColumnDefinition Width="1.2*"/>
+                            <ColumnDefinition Width="8"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="8"/>
+                            <ColumnDefinition Width="1.2*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Mã đặt sân -->
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="Mã đặt sân" Style="{StaticResource FieldLabel}"/>
+                            <ComboBox ItemsSource="{Binding DsMaPhieuDat}"
+                                      SelectedItem="{Binding MaPhieuDatSelected, Mode=TwoWay}"
+                                      Style="{StaticResource SimpleComboBox}"/>
+                        </StackPanel>
+
+                        <!-- Tên sân -->
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Text="Tên sân" Style="{StaticResource FieldLabel}"/>
+                            <TextBox Text="{Binding TenSan}" Style="{StaticResource DisabledTextBox}"/>
+                        </StackPanel>
+
+                        <!-- Mã hội viên -->
+                        <StackPanel Grid.Column="4">
+                            <TextBlock Text="Mã hội viên" Style="{StaticResource FieldLabel}"/>
+                            <ComboBox ItemsSource="{Binding DsMaHoiVien}"
+                                      SelectedItem="{Binding MaHoiVienSelected, Mode=TwoWay}"
+                                      Style="{StaticResource SimpleComboBox}"/>
+                        </StackPanel>
+
+                        <!-- Tên hội viên -->
+                        <StackPanel Grid.Column="6">
+                            <TextBlock Text="Tên hội viên" Style="{StaticResource FieldLabel}"/>
+                            <TextBox Text="{Binding TenHoiVien}" Style="{StaticResource DisabledTextBox}"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- ── ROW 2: Ngày thanh toán | Tổng tiền | Giảm giá ── -->
+                    <Grid Margin="0,0,0,12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="8"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="8"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Ngày thanh toán -->
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="Ngày thanh toán" Style="{StaticResource FieldLabel}"/>
+                            <DatePicker SelectedDate="{Binding NgayThanhToan}" Height="28" VerticalContentAlignment="Center"/>
+                        </StackPanel>
+
+                        <!-- Tổng tiền -->
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Text="Tổng tiền (VNĐ)" Style="{StaticResource FieldLabel}"/>
+                            <TextBox Text="{Binding TongTien, StringFormat=N0}" Style="{StaticResource DisabledTextBox}"/>
+                        </StackPanel>
+
+                        <!-- Giảm giá -->
+                        <StackPanel Grid.Column="4">
+                            <TextBlock Text="Giảm giá (VNĐ)" Style="{StaticResource FieldLabel}"/>
+                            <TextBox Text="{Binding GiamGia, StringFormat=N0, UpdateSourceTrigger=PropertyChanged}"
+                                     Style="{StaticResource SimpleTextBox}"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- ── ROW 3: Số tiền phải trả (full width) ── -->
+                    <StackPanel Margin="0,0,0,16">
+                        <TextBlock Text="Số tiền phải trả (VNĐ)" Style="{StaticResource FieldLabel}"/>
+                        <TextBox Text="{Binding SoTienPhaiTra, StringFormat=N0}" Style="{StaticResource DisabledTextBox}" 
+                                 FontWeight="Bold" Foreground="#1B2A4A" Height="35" Padding="8,6"/>
+                    </StackPanel>
+
+                    <!-- ── BUTTONS ── -->
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Left">
+                            <Button Content="Thanh toán" Style="{StaticResource SimpleButton}"
+                                    Background="{StaticResource PrimaryBrush}" Foreground="White" FontWeight="Bold"
+                                    Command="{Binding ThanhToanCommand}"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right">
+                            <Button Content="Hủy" Style="{StaticResource SimpleButton}" Margin="0,0,10,0" Command="{Binding HuyCommand}"/>
+                            <Button Content="Thoát" Style="{StaticResource SimpleButton}" Click="BtnThoat_Click"/>
+                        </StackPanel>
+                    </Grid>
+
+                </StackPanel>
+            </ScrollViewer>
+        </Grid>
+    </Border>
+
+</Window>
