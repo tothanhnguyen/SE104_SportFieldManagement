@@ -15,16 +15,16 @@ using System.Windows.Shapes;
 namespace QuanLySan.Views
 {
     /// <summary>
-    /// Interaction logic for DoanhThuTheoSan.xaml
+    /// Interaction logic for DoanhThuTheoKhachHang.xaml
     /// </summary>
-    public partial class DoanhThuTheoSan : Window
+    public partial class DoanhThuTheoKhachHang : Window
     {
-        public DoanhThuTheoSan()
+        public DoanhThuTheoKhachHang()
         {
             InitializeComponent();
         }
 
-        private void Button_Click(object sender, RoutedEventArgs e)
+        private void Button_Click_1(object sender, RoutedEventArgs e)
         {
             this.Close();
         }
