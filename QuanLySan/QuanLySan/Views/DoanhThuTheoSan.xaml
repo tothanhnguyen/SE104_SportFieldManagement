@@ -5,8 +5,59 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:QuanLySan.Views"
         mc:Ignorable="d"
-        Title="Báo cáo doanh thu theo sân" Height="450" Width="900"
-        WindowStyle="None" WindowStartupLocation="CenterScreen">
+        Title="Báo cáo doanh thu theo sân" Height="500" Width="900"
+        WindowStyle="None" WindowStartupLocation="CenterScreen"
+        AllowsTransparency="True" Background="Transparent">
+    <Window.Resources>
+        <Style x:Key="DarkBlueButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#1B2B49"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="FontSize" Value="15"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" 
+                                BorderBrush="#D1D1D1" 
+                                BorderThickness="2" 
+                                CornerRadius="0">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="15,6"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#273C63"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="LightGrayButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#F0F0F0"/>
+            <Setter Property="Foreground" Value="Black"/>
+            <Setter Property="FontSize" Value="15"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" 
+                                BorderBrush="#CCCCCC" 
+                                BorderThickness="2" 
+                                CornerRadius="0">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="25,10"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#E2E2E2"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
 
     <Border Background="#D1D1D1" CornerRadius="0">
         <Grid>
@@ -15,7 +66,7 @@
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
-            <Border Grid.Row="0" Background="#1B2B49">
+            <Border Grid.Row="0" Background="#1B2B49" MouseLeftButtonDown="Border_MouseLeftButtonDown">
                 <Grid Margin="20,0">
                     <TextBlock Text="Báo cáo doanh thu theo sân" 
                                Foreground="White" FontSize="18" 
@@ -30,10 +81,11 @@
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
-                <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,30">
+                <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,20">
                     <StackPanel Margin="0,0,50,0">
                         <TextBlock Text="Năm lập báo cáo" FontSize="16" Margin="0,0,0,8"/>
                         <Border Background="White" BorderBrush="#AAAAAA" BorderThickness="1" CornerRadius="5" Width="200" Height="40">
@@ -49,12 +101,17 @@
                     </StackPanel>
                 </StackPanel>
 
-                <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,25">
+                <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,30">
+                    <Button Content="Báo cáo doanh thu" Style="{StaticResource DarkBlueButtonStyle}" Margin="0,0,20,0"/>
+                    <Button Content="Thoát" Style="{StaticResource LightGrayButtonStyle}" MinWidth="120" Click="Button_Click"/>
+                </StackPanel>
+
+                <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,0,0,25">
                     <TextBlock Text="Tổng doanh số trong tháng của tất cả sân:" FontSize="16" VerticalAlignment="Center"/>
                     <Border Background="#8E8E8E" CornerRadius="5" Width="250" Height="35" Margin="20,0,0,0"/>
                 </StackPanel>
 
-                <DataGrid Grid.Row="2" Name="dgReport" 
+                <DataGrid Grid.Row="3" Name="dgReport" 
                           AutoGenerateColumns="False" CanUserAddRows="False"
                           Background="#EEEEEE" GridLinesVisibility="All"
                           HorizontalGridLinesBrush="Black" VerticalGridLinesBrush="Black"
