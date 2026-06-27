@@ -93,6 +93,17 @@ CREATE TABLE THAMSO (
 );
 
 -- ═══════════════════════════════════════════════════════
+-- 9b. Bảng Tích Điểm (cấu hình – chỉ 1 dòng) – Quy định 5
+--     HeSoTichDiem: số tiền (VNĐ) tương ứng 1 điểm tích lũy.
+--     Điểm tích lũy = floor(Số tiền phải trả / HeSoTichDiem).
+-- ═══════════════════════════════════════════════════════
+CREATE TABLE TICHDIEM (
+    Id INT PRIMARY KEY DEFAULT 1, -- chỉ có 1 dòng duy nhất
+    HeSoTichDiem FLOAT NOT NULL DEFAULT 100000, -- 100.000đ = 1 điểm
+    CONSTRAINT CK_TichDiem_OnlyOneRow CHECK (Id = 1)
+);
+
+-- ═══════════════════════════════════════════════════════
 -- 10. Bảng Chi Tiết Đặt Sân
 -- ═══════════════════════════════════════════════════════
 CREATE TABLE CHITIETDATSAN (
@@ -148,5 +159,55 @@ INSERT INTO LOAINGAY (MaLoaiNgay, TenLoaiNgay, DonGiaNgay) VALUES
 -- Tham số hệ thống mặc định
 INSERT INTO THAMSO (Id, MucDiemTichLuyMacDinh, MaLoaiHoiVienMacDinh, TinhTrangKhongDuocDat)
 VALUES (1, 0, 'DO', 'BT');
+
+-- Hệ số tích điểm mặc định (1 dòng duy nhất): 100.000đ = 1 điểm
+INSERT INTO TICHDIEM (Id, HeSoTichDiem) VALUES (1, 100000);
+
+GO
+
+-- ═══════════════════════════════════════════════════════
+-- 13. DỮ LIỆU MẪU KIỂM THỬ BÁO CÁO DOANH THU (Sprint 6.1 & 6.2)
+--     Đặt sân nằm trong THÁNG 6/2026 → mở báo cáo chọn Tháng 6 / Năm 2026.
+--     Kết quả mong đợi:
+--       Theo sân:  S01 = 150.000đ (lấp đầy 2/4 = 50%)
+--                  S02 =  50.000đ (lấp đầy 1/3 ≈ 33,33%)
+--                  S03 = 200.000đ (lấp đầy 2/2 = 100%)   → Tổng = 400.000đ
+--       Theo KH:   An = 200.000đ (50%), Bình = 100.000đ (25%), Cường = 100.000đ (25%)
+-- ═══════════════════════════════════════════════════════
+
+-- Sân (LOAISAN: BD/CL/PB, TINHTRANG: HD)
+INSERT INTO SAN (MaSan, TenSan, DiaChi, GhiChu, MaLoaiSan, MaTinhTrang) VALUES
+('S01', N'Sân bóng đá A', N'123 Lê Lợi, Q1', N'', 'BD', 'HD'),
+('S02', N'Sân cầu lông B', N'45 Nguyễn Huệ, Q1', N'', 'CL', 'HD'),
+('S03', N'Sân pickleball C', N'7 Trần Hưng Đạo, Q5', N'', 'PB', 'HD');
+
+-- Khung giờ (CHITIETDATSAN) — đơn giá theo LOAINGAY: NT/CT/NL
+-- S01 có 4 khung, S02 có 3 khung, S03 có 2 khung
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES
+('CT01', 'S01', '05:00:00', '06:00:00', 'NT'),
+('CT02', 'S01', '06:00:00', '07:00:00', 'NT'),
+('CT03', 'S01', '17:00:00', '18:00:00', 'CT'),
+('CT04', 'S01', '18:00:00', '19:00:00', 'NL'),
+('CT05', 'S02', '06:00:00', '07:00:00', 'NT'),
+('CT06', 'S02', '17:00:00', '18:00:00', 'CT'),
+('CT07', 'S02', '19:00:00', '20:00:00', 'CT'),
+('CT08', 'S03', '07:00:00', '08:00:00', 'NT'),
+('CT09', 'S03', '20:00:00', '21:00:00', 'NL');
+
+-- Hội viên (hạng khác nhau để test giảm giá Quy định 5: DO 0%, BA 3%, VA 5%, KC 10%)
+INSERT INTO HOIVIEN (MaHoiVien, HoTen, SDT, Email, GioiTinh, NgayDangKyHoiVien, DiemTichLuy, MaLoaiHoiVien, GhiChu) VALUES
+('HV01', N'Nguyễn Văn An', '0901000001', 'an.nguyen@example.com', N'Nam', '2026-01-10', 0, 'DO', N''),
+('HV02', N'Trần Thị Bình', '0901000002', 'binh.tran@example.com', N'Nữ', '2026-02-15', 100, 'BA', N''),
+('HV03', N'Lê Văn Cường', '0901000003', 'cuong.le@example.com', N'Nam', '2026-03-20', 200, 'VA', N'');
+
+-- Đặt sân (Tháng 6/2026)
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES
+('DS01', 'HV01', 'CT01', '2026-06-05', 50000, N''),
+('DS02', 'HV01', 'CT02', '2026-06-06', 50000, N''),
+('DS03', 'HV02', 'CT01', '2026-06-07', 50000, N''),  -- trùng khung CT01 (distinct vẫn tính 1)
+('DS04', 'HV02', 'CT05', '2026-06-08', 50000, N''),
+('DS05', 'HV03', 'CT08', '2026-06-10', 50000, N''),
+('DS06', 'HV01', 'CT09', '2026-06-12', 100000, N''),
+('DS07', 'HV03', 'CT08', '2026-06-15', 50000, N'');  -- trùng khung CT08
 
 GO
