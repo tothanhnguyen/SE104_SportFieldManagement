@@ -89,30 +89,39 @@
                     <StackPanel Margin="0,0,50,0">
                         <TextBlock Text="Năm lập báo cáo" FontSize="16" Margin="0,0,0,8"/>
                         <Border Background="White" BorderBrush="#AAAAAA" BorderThickness="1" CornerRadius="5" Width="200" Height="40">
-                            <TextBlock Text="&lt;Năm hiện hành&gt;" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="Gray"/>
+                            <ComboBox ItemsSource="{Binding DsNam}" SelectedItem="{Binding Nam}"
+                                      BorderThickness="0" Background="Transparent"
+                                      VerticalContentAlignment="Center" FontSize="14" Margin="5,0"/>
                         </Border>
                     </StackPanel>
 
                     <StackPanel>
                         <TextBlock Text="Tháng lập báo cáo" FontSize="16" Margin="0,0,0,8"/>
                         <Border Background="White" BorderBrush="#AAAAAA" BorderThickness="1" CornerRadius="5" Width="200" Height="40">
-                            <TextBlock Text="&lt;Tháng hiện hành&gt;" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="Gray"/>
+                            <ComboBox ItemsSource="{Binding DsThang}" SelectedItem="{Binding Thang}"
+                                      BorderThickness="0" Background="Transparent"
+                                      VerticalContentAlignment="Center" FontSize="14" Margin="5,0"/>
                         </Border>
                     </StackPanel>
                 </StackPanel>
 
                 <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,30">
-                    <Button Content="Báo cáo doanh thu" Style="{StaticResource DarkBlueButtonStyle}" Margin="0,0,20,0"/>
+                    <Button Content="Báo cáo doanh thu" Style="{StaticResource DarkBlueButtonStyle}" Margin="0,0,20,0"
+                            Command="{Binding BaoCaoCommand}"/>
                     <Button Content="Thoát" Style="{StaticResource LightGrayButtonStyle}" MinWidth="120" Click="Button_Click"/>
                 </StackPanel>
 
                 <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,0,0,25">
                     <TextBlock Text="Tổng doanh số trong tháng của tất cả khách hàng:" FontSize="16" VerticalAlignment="Center"/>
-                    <Border Background="#8E8E8E" CornerRadius="5" Width="250" Height="35" Margin="20,0,0,0"/>
+                    <Border Background="#8E8E8E" CornerRadius="5" Width="250" Height="35" Margin="20,0,0,0">
+                        <TextBlock Text="{Binding TongDoanhThuText}" Foreground="White" FontWeight="Bold"
+                                   VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                    </Border>
                 </StackPanel>
 
-                <DataGrid Grid.Row="3" Name="dgReport" 
-                          AutoGenerateColumns="False" CanUserAddRows="False"
+                <DataGrid Grid.Row="3" Name="dgReport"
+                          ItemsSource="{Binding KetQua}"
+                          AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True"
                           Background="#EEEEEE" GridLinesVisibility="All"
                           HorizontalGridLinesBrush="Black" VerticalGridLinesBrush="Black"
                           BorderBrush="Black" BorderThickness="1"
@@ -141,29 +150,32 @@
                             </DataGridTextColumn.ElementStyle>
                         </DataGridTextColumn>
 
-                        <DataGridTemplateColumn Header="Họ tên" Width="1.5*">
-                            <DataGridTemplateColumn.CellTemplate>
-                                <DataTemplate>
-                                    <Border Background="#8E8E8E" CornerRadius="10" Width="250" Height="20" HorizontalAlignment="Center"/>
-                                </DataTemplate>
-                            </DataGridTemplateColumn.CellTemplate>
-                        </DataGridTemplateColumn>
+                        <DataGridTextColumn Header="Họ tên" Binding="{Binding HoTen}" Width="1.5*">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="HorizontalAlignment" Value="Center"/>
+                                    <Setter Property="VerticalAlignment" Value="Center"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
 
-                        <DataGridTemplateColumn Header="Doanh thu" Width="1.5*">
-                            <DataGridTemplateColumn.CellTemplate>
-                                <DataTemplate>
-                                    <Border Background="#8E8E8E" CornerRadius="10" Width="180" Height="20" HorizontalAlignment="Center"/>
-                                </DataTemplate>
-                            </DataGridTemplateColumn.CellTemplate>
-                        </DataGridTemplateColumn>
+                        <DataGridTextColumn Header="Doanh thu" Binding="{Binding DoanhThuText}" Width="1.5*">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="HorizontalAlignment" Value="Center"/>
+                                    <Setter Property="VerticalAlignment" Value="Center"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
 
-                        <DataGridTemplateColumn Header="Tỷ lệ" Width="1*">
-                            <DataGridTemplateColumn.CellTemplate>
-                                <DataTemplate>
-                                    <Border Background="#8E8E8E" CornerRadius="10" Width="100" Height="20" HorizontalAlignment="Center"/>
-                                </DataTemplate>
-                            </DataGridTemplateColumn.CellTemplate>
-                        </DataGridTemplateColumn>
+                        <DataGridTextColumn Header="Tỷ lệ" Binding="{Binding TyLeText}" Width="1*">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="HorizontalAlignment" Value="Center"/>
+                                    <Setter Property="VerticalAlignment" Value="Center"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
                     </DataGrid.Columns>
                 </DataGrid>
             </Grid>
