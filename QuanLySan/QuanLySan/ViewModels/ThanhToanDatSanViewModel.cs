@@ -2,21 +2,34 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
-using System.Windows;
 using System.Windows.Input;
-using Microsoft.Data.SqlClient;
-using QuanLySan.Models;
+using QuanLySan.Data;
+using QuanLySan.Services;
 using QuanLySan.ViewModels.Base;
 
 namespace QuanLySan.ViewModels
 {
     /// <summary>
-    /// ViewModel cho màn hình "Thanh toán đặt sân" (Sprint 4 - BM5)
+    /// ViewModel màn hình "Thanh toán đặt sân" (BM5 - Sprint 5).
+    /// Quy định 5:
+    ///  - Hội viên Bạc/Vàng/Kim cương giảm 3%/5%/10% Tổng tiền.
+    ///  - Sau thanh toán, cộng điểm tích lũy = floor(Số tiền phải trả / HeSoTichDiem).
     /// </summary>
     public class ThanhToanDatSanViewModel : BaseViewModel
     {
-        private readonly string _connectionString = DatabaseConfig.ConnectionString;
+        private readonly IDialogService _dialog;
+        private readonly ThanhToanRepository _repo;
+        private readonly double _heSoTichDiem;
+
+        // Tỷ lệ giảm giá theo mã loại hội viên (Quy định 5).
+        private static readonly Dictionary<string, decimal> _tyLeGiam = new()
+        {
+            ["BA"] = 0.03m, // Bạc
+            ["VA"] = 0.05m, // Vàng
+            ["KC"] = 0.10m, // Kim cương
+        };
+
+        private string _maLoaiHoiVien = ""; // hạng hội viên đang chọn (để tính giảm giá)
 
         // ── Danh sách hiển thị ──
         public ObservableCollection<string> DsMaPhieuDat { get; } = new();
@@ -27,75 +40,50 @@ namespace QuanLySan.ViewModels
         public string MaPhieuDatSelected
         {
             get => _maPhieuDatSelected;
-            set
-            {
-                _maPhieuDatSelected = value;
-                OnPropertyChanged();
-                LoadThongTinPhieuDat();
-            }
+            set { _maPhieuDatSelected = value; OnPropertyChanged(); LoadThongTinPhieuDat(); }
         }
 
         private string _tenSan = "";
-        public string TenSan
-        {
-            get => _tenSan;
-            set { _tenSan = value; OnPropertyChanged(); }
-        }
+        public string TenSan { get => _tenSan; set { _tenSan = value; OnPropertyChanged(); } }
 
         private string _maHoiVienSelected = "";
         public string MaHoiVienSelected
         {
             get => _maHoiVienSelected;
-            set
-            {
-                _maHoiVienSelected = value;
-                OnPropertyChanged();
-                LoadThongTinHoiVien();
-            }
+            set { _maHoiVienSelected = value; OnPropertyChanged(); LoadThongTinHoiVien(); }
         }
 
         private string _tenHoiVien = "";
-        public string TenHoiVien
-        {
-            get => _tenHoiVien;
-            set { _tenHoiVien = value; OnPropertyChanged(); }
-        }
+        public string TenHoiVien { get => _tenHoiVien; set { _tenHoiVien = value; OnPropertyChanged(); } }
 
         private DateTime? _ngayThanhToan;
-        public DateTime? NgayThanhToan
-        {
-            get => _ngayThanhToan;
-            set { _ngayThanhToan = value; OnPropertyChanged(); }
-        }
+        public DateTime? NgayThanhToan { get => _ngayThanhToan; set { _ngayThanhToan = value; OnPropertyChanged(); } }
 
         private decimal _tongTien;
-        public decimal TongTien
-        {
-            get => _tongTien;
-            set { _tongTien = value; OnPropertyChanged(); TinhSoTienPhaiTra(); }
-        }
+        public decimal TongTien { get => _tongTien; set { _tongTien = value; OnPropertyChanged(); TinhTien(); } }
 
+        // Giảm giá tự động theo hạng (read-only trên UI).
         private decimal _giamGia;
-        public decimal GiamGia
-        {
-            get => _giamGia;
-            set { _giamGia = value; OnPropertyChanged(); TinhSoTienPhaiTra(); }
-        }
+        public decimal GiamGia { get => _giamGia; set { _giamGia = value; OnPropertyChanged(); } }
 
         private decimal _soTienPhaiTra;
-        public decimal SoTienPhaiTra
-        {
-            get => _soTienPhaiTra;
-            set { _soTienPhaiTra = value; OnPropertyChanged(); }
-        }
+        public decimal SoTienPhaiTra { get => _soTienPhaiTra; set { _soTienPhaiTra = value; OnPropertyChanged(); } }
 
         // ── Commands ──
         public ICommand ThanhToanCommand { get; }
         public ICommand HuyCommand { get; }
 
-        public ThanhToanDatSanViewModel()
+        public ThanhToanDatSanViewModel() : this(new DialogService(), new ThanhToanRepository()) { }
+
+        public ThanhToanDatSanViewModel(IDialogService dialog, ThanhToanRepository repo)
         {
-            LoadDanhMucTuDatabase();
+            _dialog = dialog;
+            _repo = repo;
+
+            try { _heSoTichDiem = _repo.LayHeSoTichDiem(); }
+            catch { _heSoTichDiem = 100000; }
+
+            LoadDanhMuc();
             NgayThanhToan = DateTime.Now;
 
             ThanhToanCommand = new RelayCommand(_ => ThucHienThanhToan());
@@ -104,39 +92,16 @@ namespace QuanLySan.ViewModels
 
         // ===================== NẠP DỮ LIỆU =====================
 
-        private void LoadDanhMucTuDatabase()
+        private void LoadDanhMuc()
         {
             try
             {
-                using var conn = new SqlConnection(_connectionString);
-                conn.Open();
-
-                // Danh sách các mã phiếu đặt chưa thanh toán (từ PHIEUDATSAN)
-                using (var cmd = new SqlCommand(@"
-                    SELECT DISTINCT MaPhieuDat 
-                    FROM PHIEUDATSAN 
-                    ORDER BY MaPhieuDat", conn))
-                using (var reader = cmd.ExecuteReader())
-                {
-                    while (reader.Read())
-                    {
-                        DsMaPhieuDat.Add(reader["MaPhieuDat"].ToString() ?? "");
-                    }
-                }
-
-                // Danh sách mã hội viên
-                using (var cmd = new SqlCommand("SELECT MaHoiVien FROM HOIVIEN ORDER BY MaHoiVien", conn))
-                using (var reader = cmd.ExecuteReader())
-                {
-                    while (reader.Read())
-                    {
-                        DsMaHoiVien.Add(reader["MaHoiVien"].ToString() ?? "");
-                    }
-                }
+                foreach (var ma in _repo.LoadMaDatSan()) DsMaPhieuDat.Add(ma);
+                foreach (var ma in _repo.LoadMaHoiVien()) DsMaHoiVien.Add(ma);
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Lỗi kết nối CSDL để nạp danh mục: " + ex.Message);
+                _dialog.Loi("Lỗi kết nối CSDL để nạp danh mục: " + ex.Message);
             }
         }
 
@@ -144,39 +109,21 @@ namespace QuanLySan.ViewModels
         {
             if (string.IsNullOrEmpty(MaPhieuDatSelected))
             {
-                TenSan = "";
-                TongTien = 0;
+                TenSan = ""; TongTien = 0;
                 return;
             }
-
             try
             {
-                using var conn = new SqlConnection(_connectionString);
-                conn.Open();
+                var tt = _repo.LayThongTinPhieuDat(MaPhieuDatSelected);
+                if (tt == null) { TenSan = ""; TongTien = 0; return; }
 
-                // Lấy thông tin phiếu đặt sân (TenSan, TongTien)
-                string sql = @"
-                    SELECT p.MaSan, s.TenSan, p.TongTien, p.MaHoiVien
-                    FROM PHIEUDATSAN p
-                    JOIN SAN s ON p.MaSan = s.MaSan
-                    WHERE p.MaPhieuDat = @Ma";
-
-                using (var cmd = new SqlCommand(sql, conn))
-                {
-                    cmd.Parameters.AddWithValue("@Ma", MaPhieuDatSelected);
-                    using var reader = cmd.ExecuteReader();
-                    if (reader.Read())
-                    {
-                        TenSan = reader["TenSan"].ToString() ?? "";
-                        TongTien = Convert.ToDecimal(reader["TongTien"]);
-                        string maHV = reader["MaHoiVien"].ToString() ?? "";
-                        MaHoiVienSelected = maHV;
-                    }
-                }
+                TenSan = tt.Value.TenSan;
+                TongTien = tt.Value.TongTien;          // kéo theo TinhTien()
+                MaHoiVienSelected = tt.Value.MaHoiVien; // kéo theo LoadThongTinHoiVien()
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Lỗi khi tải thông tin phiếu đặt: " + ex.Message);
+                _dialog.Loi("Lỗi khi tải thông tin phiếu đặt: " + ex.Message);
             }
         }
 
@@ -184,32 +131,29 @@ namespace QuanLySan.ViewModels
         {
             if (string.IsNullOrEmpty(MaHoiVienSelected))
             {
-                TenHoiVien = "";
+                TenHoiVien = ""; _maLoaiHoiVien = ""; TinhTien();
                 return;
             }
-
             try
             {
-                using var conn = new SqlConnection(_connectionString);
-                conn.Open();
-
-                using (var cmd = new SqlCommand("SELECT HoTen FROM HOIVIEN WHERE MaHoiVien = @Ma", conn))
-                {
-                    cmd.Parameters.AddWithValue("@Ma", MaHoiVienSelected);
-                    var result = cmd.ExecuteScalar();
-                    TenHoiVien = result?.ToString() ?? "";
-                }
+                var hv = _repo.LayThongTinHoiVien(MaHoiVienSelected);
+                TenHoiVien = hv?.HoTen ?? "";
+                _maLoaiHoiVien = hv?.MaLoaiHoiVien ?? "";
+                TinhTien();
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Lỗi khi tải thông tin hội viên: " + ex.Message);
+                _dialog.Loi("Lỗi khi tải thông tin hội viên: " + ex.Message);
             }
         }
 
-        // ===================== TÍNH TOÁN =====================
+        // ===================== TÍNH TIỀN (Quy định 5) =====================
 
-        private void TinhSoTienPhaiTra()
+        // Giảm giá theo hạng + số tiền phải trả.
+        private void TinhTien()
         {
+            decimal tyLe = _tyLeGiam.TryGetValue(_maLoaiHoiVien, out var r) ? r : 0m;
+            GiamGia = Math.Round(TongTien * tyLe);
             SoTienPhaiTra = TongTien - GiamGia;
         }
 
@@ -217,67 +161,29 @@ namespace QuanLySan.ViewModels
 
         private void ThucHienThanhToan()
         {
-            // Validate thông tin chung
-            if (string.IsNullOrEmpty(MaPhieuDatSelected))
-            {
-                MessageBox.Show("Vui lòng chọn mã phiếu đặt!", "Thiếu thông tin", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
-            if (string.IsNullOrEmpty(MaHoiVienSelected))
-            {
-                MessageBox.Show("Vui lòng chọn mã hội viên!", "Thiếu thông tin", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
-            if (NgayThanhToan == null)
-            {
-                MessageBox.Show("Vui lòng chọn ngày thanh toán!", "Thiếu thông tin", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
-            if (TongTien <= 0)
-            {
-                MessageBox.Show("Tổng tiền phải lớn hơn 0!", "Không hợp lệ", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
-            if (GiamGia < 0 || GiamGia > TongTien)
-            {
-                MessageBox.Show("Giảm giá không hợp lệ (phải từ 0 đến tổng tiền)!", "Không hợp lệ", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
+            if (string.IsNullOrEmpty(MaPhieuDatSelected)) { _dialog.CanhBao("Vui lòng chọn mã phiếu đặt!", "Thiếu thông tin"); return; }
+            if (string.IsNullOrEmpty(MaHoiVienSelected)) { _dialog.CanhBao("Vui lòng chọn mã hội viên!", "Thiếu thông tin"); return; }
+            if (NgayThanhToan == null) { _dialog.CanhBao("Vui lòng chọn ngày thanh toán!", "Thiếu thông tin"); return; }
+            if (TongTien <= 0) { _dialog.CanhBao("Tổng tiền phải lớn hơn 0!", "Không hợp lệ"); return; }
 
-            using var connection = new SqlConnection(_connectionString);
-            connection.Open();
-            using var trans = connection.BeginTransaction();
             try
             {
-                DateTime ngay = NgayThanhToan.Value.Date;
+                // Tích điểm: floor(Số tiền phải trả / Hệ số tích điểm)
+                int diem = _heSoTichDiem > 0 ? (int)Math.Floor(SoTienPhaiTra / (decimal)_heSoTichDiem) : 0;
+                if (diem > 0) _repo.CongDiem(MaHoiVienSelected, diem);
 
-                // Lưu hoặc cập nhật thông tin thanh toán vào HOADON hoặc bảng tương tự
-                // (Giả định có bảng HOADON với cấu trúc: MaHoaDon, MaPhieuDat, NgayThanhToan, TongTien, GiamGia, SoTienPhaiTra)
-                string sql = @"
-                    INSERT INTO HOADON (MaPhieuDat, NgayThanhToan, GiamGia, SoTienPhaiTra)
-                    VALUES (@MaPhieu, @Ngay, @GiamGia, @SoTienPhaiTra)";
-
-                using (var cmd = new SqlCommand(sql, connection, trans))
-                {
-                    cmd.Parameters.AddWithValue("@MaPhieu", MaPhieuDatSelected);
-                    cmd.Parameters.AddWithValue("@Ngay", ngay);
-                    cmd.Parameters.AddWithValue("@GiamGia", GiamGia);
-                    cmd.Parameters.AddWithValue("@SoTienPhaiTra", SoTienPhaiTra);
-                    cmd.ExecuteNonQuery();
-                }
-
-                trans.Commit();
-                MessageBox.Show(
+                _dialog.ThongBao(
                     $"Thanh toán thành công!\n" +
                     $"Mã phiếu: {MaPhieuDatSelected}\n" +
-                    $"Số tiền phải trả: {SoTienPhaiTra:N0} VNĐ",
-                    "Thành công", MessageBoxButton.OK, MessageBoxImage.Information);
+                    $"Giảm giá: {GiamGia:N0} VNĐ\n" +
+                    $"Số tiền phải trả: {SoTienPhaiTra:N0} VNĐ\n" +
+                    $"Điểm tích lũy được cộng: {diem}",
+                    "Thành công");
                 ThucHienHuy();
             }
             catch (Exception ex)
             {
-                trans.Rollback();
-                MessageBox.Show("Lỗi thanh toán: " + ex.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+                _dialog.Loi("Lỗi thanh toán: " + ex.Message);
             }
         }
 
@@ -287,6 +193,7 @@ namespace QuanLySan.ViewModels
             TenSan = "";
             MaHoiVienSelected = "";
             TenHoiVien = "";
+            _maLoaiHoiVien = "";
             NgayThanhToan = DateTime.Now;
             TongTien = 0;
             GiamGia = 0;
