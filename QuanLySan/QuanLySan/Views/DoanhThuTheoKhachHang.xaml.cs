@@ -1,5 +1,6 @@
 ﻿using System.Windows;
 using System.Windows.Input; // Quan trọng: Thêm thư viện này để sử dụng MouseButtonEventArgs
+using QuanLySan.ViewModels;
 
 namespace QuanLyKhachHang.Views
 {
@@ -8,6 +9,7 @@ namespace QuanLyKhachHang.Views
         public DoanhThuTheoKhachHang()
         {
             InitializeComponent();
+            DataContext = new DoanhThuTheoKhachHangViewModel();
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)

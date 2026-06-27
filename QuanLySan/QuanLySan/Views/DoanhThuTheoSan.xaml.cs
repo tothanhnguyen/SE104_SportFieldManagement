@@ -1,5 +1,6 @@
 ﻿using System.Windows;
 using System.Windows.Input; // Đảm bảo có thư viện này cho sự kiện Mouse
+using QuanLySan.ViewModels;
 
 namespace QuanLySan.Views
 {
@@ -8,6 +9,7 @@ namespace QuanLySan.Views
         public DoanhThuTheoSan()
         {
             InitializeComponent();
+            DataContext = new DoanhThuTheoSanViewModel();
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)
