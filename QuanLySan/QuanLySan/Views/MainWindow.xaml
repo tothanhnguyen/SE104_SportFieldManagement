@@ -330,7 +330,9 @@
                                       Style="{StaticResource DashboardGrid}"
                                       ColumnHeaderStyle="{StaticResource DashboardGridHeader}"
                                       MaxHeight="400"
-                                      VerticalScrollBarVisibility="Auto">
+                                      VerticalScrollBarVisibility="Auto"
+                                      IsReadOnly="True"
+                                      SelectionMode="Single">
                                 <DataGrid.Columns>
                                     <DataGridTextColumn Header="STT" Binding="{Binding STT}" Width="50" IsReadOnly="True">
                                         <DataGridTextColumn.ElementStyle>
@@ -353,21 +355,17 @@
                                         </DataGridTextColumn.ElementStyle>
                                     </DataGridTextColumn>
 
-                                    <DataGridTextColumn Header="Tên sân" Binding="{Binding TenSan, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" Width="1.4*">
+                                    <DataGridTextColumn Header="Tên sân" Binding="{Binding TenSan}" Width="Auto">
                                         <DataGridTextColumn.ElementStyle>
                                             <Style TargetType="TextBlock">
                                                 <Setter Property="Padding" Value="12,0"/>
                                                 <Setter Property="VerticalAlignment" Value="Center"/>
+                                                <Setter Property="ToolTip" Value="{Binding Text, RelativeSource={RelativeSource Self}}"/>
                                             </Style>
                                         </DataGridTextColumn.ElementStyle>
-                                        <DataGridTextColumn.EditingElementStyle>
-                                            <Style TargetType="TextBox">
-                                                <Setter Property="Padding" Value="8,4"/>
-                                            </Style>
-                                        </DataGridTextColumn.EditingElementStyle>
                                     </DataGridTextColumn>
 
-                                    <DataGridTextColumn Header="Loại sân" Binding="{Binding TenLoaiSan}" Width="1.2*" IsReadOnly="True">
+                                    <DataGridTextColumn Header="Loại sân" Binding="{Binding TenLoaiSan}" Width="Auto" IsReadOnly="True">
                                         <DataGridTextColumn.ElementStyle>
                                             <Style TargetType="TextBlock">
                                                 <Setter Property="Padding" Value="12,0"/>
@@ -376,19 +374,16 @@
                                         </DataGridTextColumn.ElementStyle>
                                     </DataGridTextColumn>
 
-                                    <DataGridTextColumn Header="Địa chỉ" Binding="{Binding DiaChi, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" Width="1.8*">
+                                    <DataGridTextColumn Header="Địa chỉ" Binding="{Binding DiaChi}" Width="*">
                                         <DataGridTextColumn.ElementStyle>
                                             <Style TargetType="TextBlock">
                                                 <Setter Property="Padding" Value="12,0"/>
                                                 <Setter Property="VerticalAlignment" Value="Center"/>
                                                 <Setter Property="Foreground" Value="#64748B"/>
+                                                <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+                                                <Setter Property="ToolTip" Value="{Binding Text, RelativeSource={RelativeSource Self}}"/>
                                             </Style>
                                         </DataGridTextColumn.ElementStyle>
-                                        <DataGridTextColumn.EditingElementStyle>
-                                            <Style TargetType="TextBox">
-                                                <Setter Property="Padding" Value="8,4"/>
-                                            </Style>
-                                        </DataGridTextColumn.EditingElementStyle>
                                     </DataGridTextColumn>
 
                                     <DataGridTextColumn Header="Khung giờ" Binding="{Binding SoKhungGio}" Width="76" IsReadOnly="True">
@@ -526,8 +521,8 @@
                                         <TextBlock Text=" sân" FontSize="14" Foreground="{StaticResource TextMuted}" 
                                                    VerticalAlignment="Bottom" Margin="4,0,0,4"/>
                                     </StackPanel>
-                                    <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
-                                        <Border Background="#DCFCE7" CornerRadius="4" Padding="5,2">
+                                    <WrapPanel Margin="0,6,0,0">
+                                        <Border Background="#DCFCE7" CornerRadius="4" Padding="5,2" Margin="0,0,6,4">
                                             <StackPanel Orientation="Horizontal">
                                                 <fa:IconBlock Icon="CircleCheck" Foreground="#16A34A" FontSize="10" VerticalAlignment="Center" Margin="0,0,4,0"/>
                                                 <TextBlock FontSize="11" Foreground="#16A34A" VerticalAlignment="Center">
@@ -536,7 +531,7 @@
                                                 </TextBlock>
                                             </StackPanel>
                                         </Border>
-                                        <Border Background="#FEF3C7" CornerRadius="4" Padding="5,2" Margin="6,0,0,0">
+                                        <Border Background="#FEF3C7" CornerRadius="4" Padding="5,2" Margin="0,0,0,4">
                                             <StackPanel Orientation="Horizontal">
                                                 <fa:IconBlock Icon="Wrench" Foreground="#D97706" FontSize="10" VerticalAlignment="Center" Margin="0,0,4,0"/>
                                                 <TextBlock FontSize="11" Foreground="#D97706" VerticalAlignment="Center">
@@ -545,7 +540,7 @@
                                                 </TextBlock>
                                             </StackPanel>
                                         </Border>
-                                    </StackPanel>
+                                    </WrapPanel>
                                 </StackPanel>
                                 <Border Width="44" Height="44" CornerRadius="10" Background="#EFF6FF"
                                         HorizontalAlignment="Right" VerticalAlignment="Top">
@@ -610,12 +605,16 @@
                         <Border Background="White" CornerRadius="12" Padding="18,16" Margin="10,0,0,0"
                                 BorderBrush="#E2E8F0" BorderThickness="1">
                             <Grid>
-                                <StackPanel>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0" Margin="0,0,8,0">
                                     <TextBlock Text="Doanh thu tháng" Foreground="{StaticResource TextMuted}" FontSize="12"/>
-                                    <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
-                                        <TextBlock Text="{Binding DoanhThuThangNay, StringFormat=N0}" 
-                                                   FontSize="24" FontWeight="Bold" Foreground="{StaticResource TextDark}"/>
-                                    </StackPanel>
+                                    <Viewbox Height="30" HorizontalAlignment="Left" Margin="0,4,0,0">
+                                        <TextBlock Text="{Binding DoanhThuThangNay, StringFormat=\{0:N0\} đ}" 
+                                                   FontWeight="Bold" Foreground="{StaticResource TextDark}"/>
+                                    </Viewbox>
                                     <Border Background="#FFF7ED" CornerRadius="4" Padding="5,2" 
                                             Margin="0,6,0,0" HorizontalAlignment="Left">
                                         <TextBlock FontSize="11" Foreground="#EA580C">
@@ -624,7 +623,7 @@
                                         </TextBlock>
                                     </Border>
                                 </StackPanel>
-                                <Border Width="44" Height="44" CornerRadius="10" Background="#FFF7ED"
+                                <Border Grid.Column="1" Width="44" Height="44" CornerRadius="10" Background="#FFF7ED"
                                         HorizontalAlignment="Right" VerticalAlignment="Top">
                                     <fa:IconImage Icon="Coins" Width="22" Height="22" Foreground="{StaticResource AccentOrange}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                 </Border>
