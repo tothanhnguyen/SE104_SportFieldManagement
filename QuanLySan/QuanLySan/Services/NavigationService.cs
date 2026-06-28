@@ -18,6 +18,7 @@ namespace QuanLySan.Services
                 "ThanhToan"       => new ThanhToanDatSanWindow(),
                 "BaoCaoSan"       => new DoanhThuTheoSan(),
                 "BaoCaoKhachHang" => new QuanLyKhachHang.Views.DoanhThuTheoKhachHang(),
+                "QuyDinh"         => new ThayDoiQuyDinhWindow(),
                 _ => null
             };
             if (form == null) return;
