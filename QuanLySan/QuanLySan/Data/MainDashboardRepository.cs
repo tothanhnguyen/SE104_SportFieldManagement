@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.Data.SqlClient;
 using QuanLySan.Models;
+using QuanLySan.Utils;
 
 namespace QuanLySan.Data
 {
@@ -18,7 +19,7 @@ namespace QuanLySan.Data
         public int DemTongSan()
         {
             using var conn = new SqlConnection(_cs);
-            conn.Open();
+            DbHelper.OpenConnection(conn);
             using var cmd = new SqlCommand("SELECT COUNT(*) FROM SAN", conn);
             return Convert.ToInt32(cmd.ExecuteScalar());
         }
@@ -26,7 +27,7 @@ namespace QuanLySan.Data
         public int DemSanHoatDong()
         {
             using var conn = new SqlConnection(_cs);
-            conn.Open();
+            DbHelper.OpenConnection(conn);
             using var cmd = new SqlCommand("SELECT COUNT(*) FROM SAN WHERE MaTinhTrang = 'HD'", conn);
             return Convert.ToInt32(cmd.ExecuteScalar());
         }
@@ -34,7 +35,7 @@ namespace QuanLySan.Data
         public int DemSanBaoTri()
         {
             using var conn = new SqlConnection(_cs);
-            conn.Open();
+            DbHelper.OpenConnection(conn);
             using var cmd = new SqlCommand("SELECT COUNT(*) FROM SAN WHERE MaTinhTrang = 'BT'", conn);
             return Convert.ToInt32(cmd.ExecuteScalar());
         }
@@ -42,7 +43,7 @@ namespace QuanLySan.Data
         public int DemTongHoiVien()
         {
             using var conn = new SqlConnection(_cs);
-            conn.Open();
+            DbHelper.OpenConnection(conn);
             using var cmd = new SqlCommand("SELECT COUNT(*) FROM HOIVIEN", conn);
             return Convert.ToInt32(cmd.ExecuteScalar());
         }
@@ -50,7 +51,7 @@ namespace QuanLySan.Data
         public int DemDatSanHomNay()
         {
             using var conn = new SqlConnection(_cs);
-            conn.Open();
+            DbHelper.OpenConnection(conn);
             using var cmd = new SqlCommand("SELECT COUNT(*) FROM DATSAN WHERE NgayDat = @Today", conn);
             cmd.Parameters.AddWithValue("@Today", DateTime.Today);
             return Convert.ToInt32(cmd.ExecuteScalar());
@@ -59,7 +60,7 @@ namespace QuanLySan.Data
         public int DemDatSanThangNay()
         {
             using var conn = new SqlConnection(_cs);
-            conn.Open();
+            DbHelper.OpenConnection(conn);
             using var cmd = new SqlCommand(
                 "SELECT COUNT(*) FROM DATSAN WHERE MONTH(NgayDat) = @M AND YEAR(NgayDat) = @Y", conn);
             cmd.Parameters.AddWithValue("@M", DateTime.Today.Month);
@@ -70,7 +71,7 @@ namespace QuanLySan.Data
         public decimal TinhDoanhThuThangNay()
         {
             using var conn = new SqlConnection(_cs);
-            conn.Open();
+            DbHelper.OpenConnection(conn);
             using var cmd = new SqlCommand(
                 @"SELECT ISNULL(SUM(TongTien), 0) FROM DATSAN
                   WHERE MONTH(NgayDat) = @M AND YEAR(NgayDat) = @Y", conn);
@@ -93,7 +94,7 @@ namespace QuanLySan.Data
                            LEFT JOIN TINHTRANG tt ON s.MaTinhTrang = tt.MaTinhTrang
                            ORDER BY s.MaSan";
             using var conn = new SqlConnection(_cs);
-            conn.Open();
+            DbHelper.OpenConnection(conn);
             using var cmd = new SqlCommand(sql, conn);
             using var reader = cmd.ExecuteReader();
             int stt = 0;
@@ -121,7 +122,7 @@ namespace QuanLySan.Data
         public void CapNhatSan(string maSan, string tenSan, string diaChi, string ghiChu)
         {
             using var conn = new SqlConnection(_cs);
-            conn.Open();
+            DbHelper.OpenConnection(conn);
             using var cmd = new SqlCommand(
                 "UPDATE SAN SET TenSan = @Ten, DiaChi = @DC, GhiChu = @GC WHERE MaSan = @Ma", conn);
             cmd.Parameters.AddWithValue("@Ma", maSan);
@@ -136,7 +137,7 @@ namespace QuanLySan.Data
         public void XoaSan(string maSan)
         {
             using var conn = new SqlConnection(_cs);
-            conn.Open();
+            DbHelper.OpenConnection(conn);
             using var trans = conn.BeginTransaction();
             try
             {
@@ -175,7 +176,7 @@ namespace QuanLySan.Data
         {
             var ds = new List<(DateTime, int)>();
             using var conn = new SqlConnection(_cs);
-            conn.Open();
+            DbHelper.OpenConnection(conn);
             // Lấy 7 ngày gần nhất kể từ hôm nay
             for (int i = 6; i >= 0; i--)
             {

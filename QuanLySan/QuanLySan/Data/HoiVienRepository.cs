@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.Data.SqlClient;
 using QuanLySan.Models;
+using QuanLySan.Utils;
 
 namespace QuanLySan.Data
 {
@@ -31,7 +32,7 @@ namespace QuanLySan.Data
         public void ThemHoiVien(HoiVien hv, string maLoaiHoiVien)
         {
             using var conn = new SqlConnection(_connectionString);
-            conn.Open();
+            DbHelper.OpenConnection(conn);
             using var trans = conn.BeginTransaction();
             try
             {
@@ -92,7 +93,7 @@ namespace QuanLySan.Data
 
             var ds = new List<HoiVien>();
             using var conn = new SqlConnection(_connectionString);
-            conn.Open();
+            DbHelper.OpenConnection(conn);
             using var cmd = new SqlCommand(sql, conn);
             cmd.Parameters.AddRange(thamSo.ToArray());
             using var reader = cmd.ExecuteReader();
@@ -127,7 +128,7 @@ namespace QuanLySan.Data
                             WHERE {cot} IS NOT NULL AND {cot} LIKE @tk
                             ORDER BY {cot}";
             using var conn = new SqlConnection(_connectionString);
-            conn.Open();
+            DbHelper.OpenConnection(conn);
             using var cmd = new SqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@tk", "%" + tuKhoa + "%");
             using var reader = cmd.ExecuteReader();
@@ -144,7 +145,7 @@ namespace QuanLySan.Data
         {
             var ds = new List<string>();
             using var conn = new SqlConnection(_connectionString);
-            conn.Open();
+            DbHelper.OpenConnection(conn);
             using var cmd = new SqlCommand("SELECT TenLoaiHoiVien FROM LOAIHOIVIEN ORDER BY MaLoaiHoiVien", conn);
             using var reader = cmd.ExecuteReader();
             while (reader.Read())

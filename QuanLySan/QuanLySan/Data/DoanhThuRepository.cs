@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.Data.SqlClient;
 using QuanLySan.Models;
+using QuanLySan.Utils;
 
 namespace QuanLySan.Data
 {
@@ -37,7 +38,7 @@ namespace QuanLySan.Data
 
             var ds = new List<DoanhThuSanItem>();
             using var conn = new SqlConnection(_connectionString);
-            conn.Open();
+            DbHelper.OpenConnection(conn);
             using var cmd = new SqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@Thang", thang);
             cmd.Parameters.AddWithValue("@Nam", nam);
@@ -75,7 +76,7 @@ namespace QuanLySan.Data
             decimal tong = 0;
             using (var conn = new SqlConnection(_connectionString))
             {
-                conn.Open();
+                DbHelper.OpenConnection(conn);
                 using var cmd = new SqlCommand(sql, conn);
                 cmd.Parameters.AddWithValue("@Thang", thang);
                 cmd.Parameters.AddWithValue("@Nam", nam);

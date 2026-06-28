@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Microsoft.Data.SqlClient;
 using QuanLySan.Models;
+using QuanLySan.Utils;
 
 namespace QuanLySan.Data
 {
@@ -20,7 +21,7 @@ namespace QuanLySan.Data
         {
             var ds = new List<(string, string, decimal)>();
             using var conn = new SqlConnection(_connectionString);
-            conn.Open();
+            DbHelper.OpenConnection(conn);
             using var cmd = new SqlCommand("SELECT MaLoaiNgay, TenLoaiNgay, DonGiaNgay FROM LOAINGAY", conn);
             using var reader = cmd.ExecuteReader();
             while (reader.Read())
@@ -32,7 +33,7 @@ namespace QuanLySan.Data
         {
             var ds = new List<San>();
             using var conn = new SqlConnection(_connectionString);
-            conn.Open();
+            DbHelper.OpenConnection(conn);
             using var cmd = new SqlCommand("SELECT MaSan, TenSan, MaTinhTrang FROM SAN", conn);
             using var reader = cmd.ExecuteReader();
             while (reader.Read())
@@ -49,7 +50,7 @@ namespace QuanLySan.Data
         {
             var ds = new List<HoiVien>();
             using var conn = new SqlConnection(_connectionString);
-            conn.Open();
+            DbHelper.OpenConnection(conn);
             using var cmd = new SqlCommand("SELECT MaHoiVien, HoTen FROM HOIVIEN", conn);
             using var reader = cmd.ExecuteReader();
             while (reader.Read())
@@ -66,7 +67,7 @@ namespace QuanLySan.Data
         {
             var ds = new List<(string, string)>();
             using var conn = new SqlConnection(_connectionString);
-            conn.Open();
+            DbHelper.OpenConnection(conn);
             using var cmd = new SqlCommand(sql, conn);
             using var reader = cmd.ExecuteReader();
             while (reader.Read())
