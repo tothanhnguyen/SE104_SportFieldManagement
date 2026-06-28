@@ -41,5 +41,8 @@ namespace QuanLySan.Models
         }
 
         public decimal DonGia { get => _donGia; set { _donGia = value; OnPropertyChanged(); } }
+
+        private bool _isBooked;
+        public bool IsBooked { get => _isBooked; set { _isBooked = value; OnPropertyChanged(); } }
     }
 }

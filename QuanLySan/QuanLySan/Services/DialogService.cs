@@ -14,5 +14,8 @@ namespace QuanLySan.Services
 
         public void Loi(string message, string title = "Lỗi")
             => MessageBox.Show(message, title, MessageBoxButton.OK, MessageBoxImage.Error);
+
+        public bool XacNhan(string message, string title = "Xác nhận")
+            => MessageBox.Show(message, title, MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes;
     }
 }

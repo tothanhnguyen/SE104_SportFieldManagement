@@ -1,5 +1,6 @@
 #nullable enable
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
@@ -52,10 +53,11 @@ namespace QuanLySan.ViewModels
         public string ThangNamHienTai { get => _thangNamHienTai; set { _thangNamHienTai = value; OnPropertyChanged(); } }
 
         // ══════════════════════════════════════════════
-        //  DANH SÁCH SÂN (DataGrid)
+        //  DANH SÁCH SÂN & BỘ LỌC
         // ══════════════════════════════════════════════
 
-        public ObservableCollection<SanDashboardItem> DsSan { get; } = new();
+        private readonly ObservableCollection<SanDashboardItem> _allSan = new(); // Dữ liệu gốc
+        public ObservableCollection<SanDashboardItem> DsSanHienThi { get; } = new(); // Dữ liệu đã phân trang hiển thị lên UI
 
         private SanDashboardItem? _sanSelected;
         public SanDashboardItem? SanSelected
@@ -63,6 +65,57 @@ namespace QuanLySan.ViewModels
             get => _sanSelected;
             set { _sanSelected = value; OnPropertyChanged(); }
         }
+
+        private string _searchText = "";
+        public string SearchText
+        {
+            get => _searchText;
+            set { _searchText = value; OnPropertyChanged(); ApplyFilter(); }
+        }
+
+        public ObservableCollection<string> DsLoaiSanFilter { get; } = new();
+        private string _selectedLoaiSan = "Tất cả loại sân";
+        public string SelectedLoaiSan
+        {
+            get => _selectedLoaiSan;
+            set { _selectedLoaiSan = value; OnPropertyChanged(); ApplyFilter(); }
+        }
+
+        public ObservableCollection<string> DsTinhTrangFilter { get; } = new();
+        private string _selectedTinhTrang = "Tất cả trạng thái";
+        public string SelectedTinhTrang
+        {
+            get => _selectedTinhTrang;
+            set { _selectedTinhTrang = value; OnPropertyChanged(); ApplyFilter(); }
+        }
+
+        // ══════════════════════════════════════════════
+        //  PHÂN TRANG
+        // ══════════════════════════════════════════════
+
+        private int _currentPage = 1;
+        public int CurrentPage
+        {
+            get => _currentPage;
+            set { _currentPage = value; OnPropertyChanged(); UpdatePagination(); }
+        }
+
+        private int _totalPages = 1;
+        public int TotalPages
+        {
+            get => _totalPages;
+            set { _totalPages = value; OnPropertyChanged(); }
+        }
+
+        private int _totalFiltered = 0;
+        public int TotalFiltered
+        {
+            get => _totalFiltered;
+            set { _totalFiltered = value; OnPropertyChanged(); }
+        }
+
+        private readonly int _pageSize = 10;
+        private List<SanDashboardItem> _filteredList = new();
 
         // ══════════════════════════════════════════════
         //  THỐNG KÊ 7 NGÀY (biểu đồ bar đơn giản)
@@ -78,17 +131,26 @@ namespace QuanLySan.ViewModels
         public ICommand RefreshCommand { get; }
         public ICommand SuaSanCommand { get; }
         public ICommand XoaSanCommand { get; }
+        public ICommand PrevPageCommand { get; }
+        public ICommand NextPageCommand { get; }
 
         // ══════════════════════════════════════════════
         //  CONSTRUCTORS
         // ══════════════════════════════════════════════
 
-        public MainViewModel() : this(new NavigationService(), new MainDashboardRepository()) { }
+        public MainViewModel() : this(new NavigationService(), new MainDashboardRepository(), new DanhMucRepository()) { }
 
-        public MainViewModel(INavigationService nav, MainDashboardRepository repo)
+        public MainViewModel(INavigationService nav, MainDashboardRepository repo, DanhMucRepository danhMucRepo)
         {
             _nav = nav;
             _repo = repo;
+
+            // Load Combobox Filter
+            DsLoaiSanFilter.Add("Tất cả loại sân");
+            foreach (var ls in danhMucRepo.LoadLoaiSan()) DsLoaiSanFilter.Add(ls.Ten);
+
+            DsTinhTrangFilter.Add("Tất cả trạng thái");
+            foreach (var tt in danhMucRepo.LoadTinhTrang()) DsTinhTrangFilter.Add(tt.Ten);
 
             MoBieuMauCommand = new RelayCommand(p =>
             {
@@ -108,6 +170,9 @@ namespace QuanLySan.ViewModels
             {
                 if (p is SanDashboardItem item) ThucHienXoaSan(item);
             });
+
+            PrevPageCommand = new RelayCommand(_ => CurrentPage--, _ => CurrentPage > 1);
+            NextPageCommand = new RelayCommand(_ => CurrentPage++, _ => CurrentPage < TotalPages);
 
             LoadAll();
         }
@@ -132,8 +197,10 @@ namespace QuanLySan.ViewModels
                 DoanhThuThangNay = _repo.TinhDoanhThuThangNay();
 
                 // Danh sách sân
-                DsSan.Clear();
-                foreach (var s in _repo.LoadDanhSachSan()) DsSan.Add(s);
+                _allSan.Clear();
+                foreach (var s in _repo.LoadDanhSachSan()) _allSan.Add(s);
+
+                ApplyFilter(); // Áp dụng lọc và phân trang ngay khi tải xong
 
                 // Thống kê 7 ngày
                 ThongKe7Ngay.Clear();
@@ -159,6 +226,52 @@ namespace QuanLySan.ViewModels
         }
 
         // ══════════════════════════════════════════════
+        //  LỌC & PHÂN TRANG
+        // ══════════════════════════════════════════════
+
+        private void ApplyFilter()
+        {
+            var query = _allSan.AsEnumerable();
+
+            if (!string.IsNullOrWhiteSpace(SearchText))
+            {
+                var lowerSearch = SearchText.ToLower();
+                query = query.Where(s => s.TenSan.ToLower().Contains(lowerSearch) || s.MaSan.ToLower().Contains(lowerSearch));
+            }
+
+            if (SelectedLoaiSan != "Tất cả loại sân")
+            {
+                query = query.Where(s => s.TenLoaiSan == SelectedLoaiSan);
+            }
+
+            if (SelectedTinhTrang != "Tất cả trạng thái")
+            {
+                query = query.Where(s => s.TenTinhTrang == SelectedTinhTrang);
+            }
+
+            _filteredList = query.ToList();
+            TotalFiltered = _filteredList.Count;
+            TotalPages = Math.Max(1, (int)Math.Ceiling((double)TotalFiltered / _pageSize));
+            
+            // Đưa về trang 1 mỗi khi đổi filter
+            CurrentPage = 1;
+        }
+
+        private void UpdatePagination()
+        {
+            DsSanHienThi.Clear();
+            int sttStart = (CurrentPage - 1) * _pageSize + 1;
+            var pageItems = _filteredList.Skip((CurrentPage - 1) * _pageSize).Take(_pageSize).ToList();
+            
+            // Cập nhật lại STT hiển thị cho đúng thứ tự
+            for (int i = 0; i < pageItems.Count; i++)
+            {
+                pageItems[i].STT = sttStart + i;
+                DsSanHienThi.Add(pageItems[i]);
+            }
+        }
+
+        // ══════════════════════════════════════════════
         //  SỬA SÂN
         // ══════════════════════════════════════════════
 
@@ -166,14 +279,15 @@ namespace QuanLySan.ViewModels
         {
             try
             {
-                _repo.CapNhatSan(item.MaSan, item.TenSan, item.DiaChi, item.GhiChu);
-                MessageBox.Show($"Đã cập nhật thông tin sân \"{item.MaSan}\" thành công!", "Thành công",
-                    MessageBoxButton.OK, MessageBoxImage.Information);
-                LoadAll();
+                var window = new QuanLySan.Views.SuaSanWindow(item.MaSan);
+                if (window.ShowDialog() == true)
+                {
+                    LoadAll();
+                }
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Lỗi cập nhật sân: " + ex.Message, "Lỗi",
+                MessageBox.Show("Lỗi mở màn hình sửa sân: " + ex.Message, "Lỗi",
                     MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }

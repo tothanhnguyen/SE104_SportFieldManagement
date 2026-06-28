@@ -8,5 +8,6 @@ namespace QuanLySan.Services
         void ThongBao(string message, string title = "Thông báo");
         void CanhBao(string message, string title = "Cảnh báo");
         void Loi(string message, string title = "Lỗi");
+        bool XacNhan(string message, string title = "Xác nhận");
     }
 }

@@ -266,29 +266,66 @@
                             BorderBrush="#E2E8F0" BorderThickness="1">
                         <StackPanel>
                             <Grid Margin="0,0,0,12">
-                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <!-- Tiêu đề -->
+                                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
                                     <fa:IconBlock Icon="ListUl" Foreground="{StaticResource TextDark}" FontSize="15" Margin="0,0,8,0" VerticalAlignment="Center"/>
                                     <TextBlock Text="Danh sách sân" FontSize="15" FontWeight="SemiBold" 
                                                Foreground="{StaticResource TextDark}" VerticalAlignment="Center"/>
                                 </StackPanel>
-                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                                    <TextBlock VerticalAlignment="Center" Margin="0,0,10,0" FontSize="12" Foreground="#94A3B8">
-                                        <Run Text="Tổng: "/>
-                                        <Run Text="{Binding TongSan, Mode=OneWay}" FontWeight="Bold"/>
-                                        <Run Text=" sân"/>
-                                    </TextBlock>
-                                    <Button Style="{StaticResource RefreshButton}" Background="#10B981"
+
+                                <!-- Công cụ (Tìm kiếm, Lọc, Thêm mới) -->
+                                <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                    <!-- Ô Tìm kiếm -->
+                                    <Border BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="6" Background="#F8FAFC" Padding="8,0" Margin="0,0,8,0" Width="140" Height="32">
+                                        <Grid>
+                                            <fa:IconBlock Icon="MagnifyingGlass" Foreground="#94A3B8" FontSize="12" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                                            <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" 
+                                                     Background="Transparent" BorderThickness="0" Margin="20,0,0,0" VerticalAlignment="Center"
+                                                     Foreground="#334155" FontSize="12" />
+                                            <TextBlock Text="Tìm sân..." Foreground="#94A3B8" FontSize="12" Margin="22,0,0,0" VerticalAlignment="Center"
+                                                       IsHitTestVisible="False">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding SearchText}" Value="">
+                                                                <Setter Property="Visibility" Value="Visible"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                        </Grid>
+                                    </Border>
+
+                                    <!-- Lọc theo Loại sân -->
+                                    <ComboBox ItemsSource="{Binding DsLoaiSanFilter}" SelectedItem="{Binding SelectedLoaiSan}"
+                                              Width="110" Height="32" Margin="0,0,8,0" VerticalContentAlignment="Center"
+                                              Background="White" BorderBrush="#E2E8F0" FontSize="12"/>
+
+                                    <!-- Lọc theo Tình trạng -->
+                                    <ComboBox ItemsSource="{Binding DsTinhTrangFilter}" SelectedItem="{Binding SelectedTinhTrang}"
+                                              Width="120" Height="32" Margin="0,0,12,0" VerticalContentAlignment="Center"
+                                              Background="White" BorderBrush="#E2E8F0" FontSize="12"/>
+
+                                    <!-- Nút Thêm mới -->
+                                    <Button Style="{StaticResource RefreshButton}" Background="#10B981" Height="32" Padding="10,0"
                                             Command="{Binding MoBieuMauCommand}" CommandParameter="TiepNhanSan">
                                         <StackPanel Orientation="Horizontal">
-                                            <fa:IconBlock Icon="Plus" FontSize="12" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                                            <TextBlock Text="Thêm sân mới" VerticalAlignment="Center"/>
+                                            <fa:IconBlock Icon="Plus" FontSize="12" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                            <TextBlock Text="Thêm sân" VerticalAlignment="Center" FontSize="12"/>
                                         </StackPanel>
                                     </Button>
                                 </StackPanel>
                             </Grid>
 
                             <DataGrid x:Name="dgSan"
-                                      ItemsSource="{Binding DsSan}"
+                                      ItemsSource="{Binding DsSanHienThi}"
                                       SelectedItem="{Binding SanSelected}"
                                       Style="{StaticResource DashboardGrid}"
                                       ColumnHeaderStyle="{StaticResource DashboardGridHeader}"
@@ -422,6 +459,55 @@
                                     </DataGridTemplateColumn>
                                 </DataGrid.Columns>
                             </DataGrid>
+
+                            <!-- ── THANH PHÂN TRANG ── -->
+                            <Grid Margin="0,12,0,0">
+                                <!-- Thông tin phân trang (Bên trái) -->
+                                <TextBlock VerticalAlignment="Center" Foreground="#64748B" FontSize="12">
+                                    <Run Text="Hiển thị trang "/>
+                                    <Run Text="{Binding CurrentPage}" FontWeight="Bold" Foreground="#1E293B"/>
+                                    <Run Text=" / "/>
+                                    <Run Text="{Binding TotalPages}" FontWeight="Bold" Foreground="#1E293B"/>
+                                    <Run Text=" (Tổng "/>
+                                    <Run Text="{Binding TotalFiltered}" FontWeight="Bold" Foreground="#3B82F6"/>
+                                    <Run Text=" sân)"/>
+                                </TextBlock>
+
+                                <!-- Nút chuyển trang (Bên phải) -->
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                    <Button Command="{Binding PrevPageCommand}" Width="32" Height="32" 
+                                            Background="White" BorderBrush="#E2E8F0" BorderThickness="1" 
+                                            Margin="0,0,6,0" Cursor="Hand" ToolTip="Trang trước">
+                                        <fa:IconBlock Icon="ChevronLeft" FontSize="12" Foreground="#475569"/>
+                                        <Button.Style>
+                                            <Style TargetType="Button">
+                                                <Setter Property="Opacity" Value="1"/>
+                                                <Style.Triggers>
+                                                    <Trigger Property="IsEnabled" Value="False">
+                                                        <Setter Property="Opacity" Value="0.4"/>
+                                                    </Trigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Button.Style>
+                                    </Button>
+
+                                    <Button Command="{Binding NextPageCommand}" Width="32" Height="32" 
+                                            Background="White" BorderBrush="#E2E8F0" BorderThickness="1" 
+                                            Cursor="Hand" ToolTip="Trang sau">
+                                        <fa:IconBlock Icon="ChevronRight" FontSize="12" Foreground="#475569"/>
+                                        <Button.Style>
+                                            <Style TargetType="Button">
+                                                <Setter Property="Opacity" Value="1"/>
+                                                <Style.Triggers>
+                                                    <Trigger Property="IsEnabled" Value="False">
+                                                        <Setter Property="Opacity" Value="0.4"/>
+                                                    </Trigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Button.Style>
+                                    </Button>
+                                </StackPanel>
+                            </Grid>
                         </StackPanel>
                     </Border>
 

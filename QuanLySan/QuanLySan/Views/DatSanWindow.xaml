@@ -5,7 +5,7 @@
         xmlns:fa="http://schemas.awesome.incremented/wpf/xaml/fontawesome.sharp"
         xmlns:models="clr-namespace:QuanLySan.Models"
         Title="Đặt sân"
-        Width="850" Height="720"
+        Width="800" SizeToContent="Height"
         WindowStartupLocation="CenterScreen"
         ResizeMode="NoResize"
         Background="Transparent"
