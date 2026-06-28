@@ -21,6 +21,12 @@ namespace QuanLySan.ViewModels
         private readonly MainDashboardRepository _repo;
 
         // ══════════════════════════════════════════════
+        //  THÔNG TIN NGƯỜI DÙNG (PROFILE)
+        // ══════════════════════════════════════════════
+        public string Username => Utils.AppSession.CurrentUsername;
+        public string Email => Utils.AppSession.CurrentEmail;
+
+        // ══════════════════════════════════════════════
         //  THỐNG KÊ TỔNG QUAN (các thẻ card)
         // ══════════════════════════════════════════════
 
@@ -133,6 +139,8 @@ namespace QuanLySan.ViewModels
         public ICommand XoaSanCommand { get; }
         public ICommand PrevPageCommand { get; }
         public ICommand NextPageCommand { get; }
+        public ICommand LogoutCommand { get; }
+        public ICommand ChangePasswordCommand { get; }
 
         // ══════════════════════════════════════════════
         //  CONSTRUCTORS
@@ -173,6 +181,22 @@ namespace QuanLySan.ViewModels
 
             PrevPageCommand = new RelayCommand(_ => CurrentPage--, _ => CurrentPage > 1);
             NextPageCommand = new RelayCommand(_ => CurrentPage++, _ => CurrentPage < TotalPages);
+
+            LogoutCommand = new RelayCommand(_ =>
+            {
+                var result = MessageBox.Show("Bạn có chắc chắn muốn đăng xuất?", "Xác nhận", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                if (result == MessageBoxResult.Yes)
+                {
+                    System.Diagnostics.Process.Start(Environment.ProcessPath ?? "QuanLySan.exe");
+                    Application.Current.Shutdown();
+                }
+            });
+
+            ChangePasswordCommand = new RelayCommand(_ =>
+            {
+                var window = new QuanLySan.Views.ChangePasswordWindow();
+                window.ShowDialog();
+            });
 
             LoadAll();
         }

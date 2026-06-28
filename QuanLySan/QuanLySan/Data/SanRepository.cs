@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.Data.SqlClient;
 using QuanLySan.Models;
+using QuanLySan.Utils;
 
 namespace QuanLySan.Data
 {
@@ -17,7 +18,7 @@ namespace QuanLySan.Data
             IReadOnlyList<(string MaChiTiet, TimeSpan GioBatDau, TimeSpan GioKetThuc, string MaLoaiNgay)> khungGio)
         {
             using var conn = new SqlConnection(_connectionString);
-            conn.Open();
+            DbHelper.OpenConnection(conn);
             using var trans = conn.BeginTransaction();
             try
             {
@@ -58,7 +59,7 @@ namespace QuanLySan.Data
         public San? GetSanInfo(string maSan)
         {
             using var conn = new SqlConnection(_connectionString);
-            conn.Open();
+            DbHelper.OpenConnection(conn);
             string sql = "SELECT MaSan, TenSan, DiaChi, GhiChu, MaLoaiSan, MaTinhTrang FROM SAN WHERE MaSan = @Ma";
             using var cmd = new SqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@Ma", maSan);
@@ -82,7 +83,7 @@ namespace QuanLySan.Data
         {
             var list = new List<(string, TimeSpan, TimeSpan, string, bool)>();
             using var conn = new SqlConnection(_connectionString);
-            conn.Open();
+            DbHelper.OpenConnection(conn);
             string sql = @"SELECT ct.MaChiTiet, ct.GioBatDau, ct.GioKetThuc, ct.MaLoaiNgay,
                                   CAST(CASE WHEN EXISTS(SELECT 1 FROM DATSAN d WHERE d.MaChiTiet = ct.MaChiTiet) THEN 1 ELSE 0 END AS BIT) AS IsBooked
                            FROM CHITIETDATSAN ct 
@@ -111,7 +112,7 @@ namespace QuanLySan.Data
             IReadOnlyList<string> deletedItems)
         {
             using var conn = new SqlConnection(_connectionString);
-            conn.Open();
+            DbHelper.OpenConnection(conn);
             using var trans = conn.BeginTransaction();
             try
             {
@@ -182,7 +183,7 @@ namespace QuanLySan.Data
         public void XoaKhungGio(string maChiTiet)
         {
             using var conn = new SqlConnection(_connectionString);
-            conn.Open();
+            DbHelper.OpenConnection(conn);
             string sql = "DELETE FROM CHITIETDATSAN WHERE MaChiTiet = @MaCT";
             using var cmd = new SqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@MaCT", maChiTiet);

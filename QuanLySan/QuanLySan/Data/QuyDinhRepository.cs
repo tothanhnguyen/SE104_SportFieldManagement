@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.Data.SqlClient;
 using QuanLySan.Models;
+using QuanLySan.Utils;
 
 namespace QuanLySan.Data
 {
@@ -16,27 +17,33 @@ namespace QuanLySan.Data
             int heSo = 100000;
 
             using var conn = new SqlConnection(_cs);
-            conn.Open();
+            DbHelper.OpenConnection(conn);
 
             // Load THAMSO
-            string sqlThamSo = "SELECT MucDiemTichLuyMacDinh, MaLoaiHoiVienMacDinh FROM THAMSO WHERE Id = 1";
+            string sqlThamSo = "SELECT MucDiemTichLuyMacDinh, MaLoaiHoiVienMacDinh FROM THAMSO WHERE AccountId = @AccountId";
             using (var cmd = new SqlCommand(sqlThamSo, conn))
-            using (var reader = cmd.ExecuteReader())
             {
-                if (reader.Read())
+                cmd.Parameters.AddWithValue("@AccountId", AppSession.CurrentAccountId);
+                using (var reader = cmd.ExecuteReader())
                 {
-                    mucDiem = Convert.ToInt32(reader["MucDiemTichLuyMacDinh"]);
-                    loaiHV = reader["MaLoaiHoiVienMacDinh"]?.ToString() ?? "";
+                    if (reader.Read())
+                    {
+                        mucDiem = Convert.ToInt32(reader["MucDiemTichLuyMacDinh"]);
+                        loaiHV = reader["MaLoaiHoiVienMacDinh"]?.ToString() ?? "";
+                    }
                 }
             }
 
             // Load TICHDIEM
-            using (var cmd = new SqlCommand("SELECT HeSoTichDiem FROM TICHDIEM WHERE Id = 1", conn))
-            using (var reader = cmd.ExecuteReader())
+            using (var cmd = new SqlCommand("SELECT HeSoTichDiem FROM TICHDIEM WHERE AccountId = @AccountId", conn))
             {
-                if (reader.Read())
+                cmd.Parameters.AddWithValue("@AccountId", AppSession.CurrentAccountId);
+                using (var reader = cmd.ExecuteReader())
                 {
-                    heSo = Convert.ToInt32(reader["HeSoTichDiem"]);
+                    if (reader.Read())
+                    {
+                        heSo = Convert.ToInt32(reader["HeSoTichDiem"]);
+                    }
                 }
             }
 
@@ -47,7 +54,7 @@ namespace QuanLySan.Data
         {
             var ds = new List<LoaiHoiVienQuyDinh>();
             using var conn = new SqlConnection(_cs);
-            conn.Open();
+            DbHelper.OpenConnection(conn);
             // Cột MucGiamGia không có trong database nên ta không query
             using var cmd = new SqlCommand("SELECT MaLoaiHoiVien, TenLoaiHoiVien, DiemToiThieu FROM LOAIHOIVIEN", conn);
             using var reader = cmd.ExecuteReader();

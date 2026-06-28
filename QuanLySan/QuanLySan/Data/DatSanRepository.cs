@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.Data.SqlClient;
 using QuanLySan.Models;
+using QuanLySan.Utils;
 
 namespace QuanLySan.Data
 {
@@ -20,7 +21,7 @@ namespace QuanLySan.Data
                            LEFT JOIN LOAINGAY ln ON ct.MaLoaiNgay = ln.MaLoaiNgay
                            WHERE ct.MaChiTiet = @MaChiTiet AND ct.MaSan = @MaSan";
             using var conn = new SqlConnection(_connectionString);
-            conn.Open();
+            DbHelper.OpenConnection(conn);
             using var cmd = new SqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@MaChiTiet", maChiTiet);
             cmd.Parameters.AddWithValue("@MaSan", maSan);
@@ -45,7 +46,7 @@ namespace QuanLySan.Data
                            WHERE ct.MaSan = @MaSan
                            ORDER BY ct.GioBatDau";
             using var conn = new SqlConnection(_connectionString);
-            conn.Open();
+            DbHelper.OpenConnection(conn);
             using var cmd = new SqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@MaSan", maSan);
             using var reader = cmd.ExecuteReader();
@@ -70,7 +71,7 @@ namespace QuanLySan.Data
                            WHERE ct.MaSan = @MaSan AND d.NgayDat = @Ngay
                                  AND ct.GioBatDau < @KT AND @BD < ct.GioKetThuc";
             using var conn = new SqlConnection(_connectionString);
-            conn.Open();
+            DbHelper.OpenConnection(conn);
             using var cmd = new SqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@MaSan", maSan);
             cmd.Parameters.AddWithValue("@Ngay", ngay);
@@ -84,7 +85,7 @@ namespace QuanLySan.Data
             IReadOnlyList<(string MaDatSan, string MaHoiVien, string MaChiTiet, DateTime NgayDat, decimal TongTien, string GhiChu)> phieuList)
         {
             using var conn = new SqlConnection(_connectionString);
-            conn.Open();
+            DbHelper.OpenConnection(conn);
             using var trans = conn.BeginTransaction();
             try
             {
