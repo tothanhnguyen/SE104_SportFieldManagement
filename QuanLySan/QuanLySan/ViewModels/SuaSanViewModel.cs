@@ -2,6 +2,8 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
+using System.Windows;
 using System.Windows.Input;
 using QuanLySan.Data;
 using QuanLySan.Models;
@@ -10,14 +12,13 @@ using QuanLySan.ViewModels.Base;
 
 namespace QuanLySan.ViewModels
 {
-    // Tiếp nhận thông tin sân (BM1). Lưu sân + các khung giờ vào CHITIETDATSAN.
-    public class TiepNhanSanViewModel : BaseViewModel
+    public class SuaSanViewModel : BaseViewModel
     {
         private readonly IDialogService _dialog;
         private readonly DanhMucRepository _danhMuc;
         private readonly SanRepository _sanRepo;
+        private readonly Window _window;
 
-        // Dữ liệu nhập liệu
         private string _maSan = "";
         public string MaSan { get => _maSan; set { _maSan = value; OnPropertyChanged(); } }
 
@@ -30,41 +31,41 @@ namespace QuanLySan.ViewModels
         private string _ghiChu = "";
         public string GhiChu { get => _ghiChu; set { _ghiChu = value; OnPropertyChanged(); } }
 
-        // Binding cho mục đang được chọn trên ComboBox
         private string? _loaiSanSelected;
         public string? LoaiSanSelected { get => _loaiSanSelected; set { _loaiSanSelected = value; OnPropertyChanged(); } }
 
         private string? _tinhTrangSelected;
         public string? TinhTrangSelected { get => _tinhTrangSelected; set { _tinhTrangSelected = value; OnPropertyChanged(); } }
 
-        // Danh sách hiển thị ra giao diện
         public ObservableCollection<GioSanItem> DsGioSan { get; set; } = new();
         public ObservableCollection<string> DsLoaiSan { get; set; } = new();
         public ObservableCollection<string> DsTinhTrang { get; set; } = new();
 
-        // Dictionary ánh xạ Tên → Mã khi lưu xuống CSDL
         private readonly Dictionary<string, string> _mapLoaiSan = new();
         private readonly Dictionary<string, string> _mapTinhTrang = new();
         public static Dictionary<string, string> MapLoaiNgay = new();
 
-        // Commands
         public ICommand ThemGioCommand { get; }
         public ICommand LuuCommand { get; }
         public ICommand HuyCommand { get; }
         public ICommand XoaGioCommand { get; }
 
-        // Constructor mặc định cho View (code-behind: new TiepNhanSanViewModel()).
-        public TiepNhanSanViewModel()
-            : this(new DialogService(), new DanhMucRepository(), new SanRepository()) { }
+        private readonly List<string> _deletedItems = new();
 
-        // Constructor cho phép tiêm phụ thuộc (đúng MVVM, dễ kiểm thử).
-        public TiepNhanSanViewModel(IDialogService dialog, DanhMucRepository danhMuc, SanRepository sanRepo)
+        public SuaSanViewModel(string maSan, Window window)
+            : this(maSan, window, new DialogService(), new DanhMucRepository(), new SanRepository()) { }
+
+        public SuaSanViewModel(string maSan, Window window, IDialogService dialog, DanhMucRepository danhMuc, SanRepository sanRepo)
         {
+            _window = window;
             _dialog = dialog;
             _danhMuc = danhMuc;
             _sanRepo = sanRepo;
 
+            MaSan = maSan;
+
             LoadDanhMuc();
+            LoadThongTinSan();
 
             ThemGioCommand = new RelayCommand(_ =>
             {
@@ -73,7 +74,9 @@ namespace QuanLySan.ViewModels
                     STT = DsGioSan.Count + 1,
                     GioBatDau = "07:00",
                     GioKetThuc = "08:00",
-                    LoaiNgay = GioSanItem.DsLoaiNgay.Count > 0 ? GioSanItem.DsLoaiNgay[0] : ""
+                    LoaiNgay = GioSanItem.DsLoaiNgay.Count > 0 ? GioSanItem.DsLoaiNgay[0] : "",
+                    MaChiTiet = "", // Khung giờ mới
+                    IsBooked = false
                 });
             });
 
@@ -81,8 +84,25 @@ namespace QuanLySan.ViewModels
             {
                 if (p is GioSanItem item)
                 {
+                    if (item.IsBooked)
+                    {
+                        _dialog.CanhBao("Khung giờ này đã có người đặt, không thể xóa!");
+                        return;
+                    }
                     if (_dialog.XacNhan("Xác nhận xoá khung giờ ?", "Xác nhận xóa"))
                     {
+                        if (!string.IsNullOrEmpty(item.MaChiTiet))
+                        {
+                            try
+                            {
+                                _sanRepo.XoaKhungGio(item.MaChiTiet);
+                            }
+                            catch (Exception ex)
+                            {
+                                _dialog.Loi("Lỗi xóa dưới cơ sở dữ liệu: " + ex.Message);
+                                return;
+                            }
+                        }
                         DsGioSan.Remove(item);
                         // Cập nhật lại STT
                         for (int i = 0; i < DsGioSan.Count; i++) DsGioSan[i].STT = i + 1;
@@ -91,9 +111,7 @@ namespace QuanLySan.ViewModels
             });
 
             LuuCommand = new RelayCommand(_ => ThucHienLuu());
-            HuyCommand = new RelayCommand(_ => ThucHienHuy());
-
-            PhatSinhMaSan();
+            HuyCommand = new RelayCommand(_ => _window.Close());
         }
 
         private void LoadDanhMuc()
@@ -119,20 +137,48 @@ namespace QuanLySan.ViewModels
             }
             catch (Exception ex)
             {
-                _dialog.Loi("Lỗi kết nối CSDL để nạp danh mục: " + ex.Message);
+                _dialog.Loi("Lỗi nạp danh mục: " + ex.Message);
             }
         }
 
-        // Phát sinh mã sân (VD: S24599)
-        private void PhatSinhMaSan() => MaSan = "S" + new Random().Next(10000, 99999).ToString();
-
-        private void ThucHienHuy()
+        private void LoadThongTinSan()
         {
-            TenSan = ""; DiaChi = ""; GhiChu = "";
-            LoaiSanSelected = null;
-            TinhTrangSelected = null;
-            DsGioSan.Clear();
-            PhatSinhMaSan();
+            try
+            {
+                var san = _sanRepo.GetSanInfo(MaSan);
+                if (san != null)
+                {
+                    TenSan = san.TenSan;
+                    DiaChi = san.DiaChi;
+                    GhiChu = san.GhiChu;
+                    
+                    LoaiSanSelected = _mapLoaiSan.FirstOrDefault(x => x.Value == san.MaLoaiSan).Key;
+                    TinhTrangSelected = _mapTinhTrang.FirstOrDefault(x => x.Value == san.MaTinhTrang).Key;
+                }
+
+                var khungGios = _sanRepo.GetKhungGioSan(MaSan);
+                DsGioSan.Clear();
+                _deletedItems.Clear();
+                int stt = 1;
+                foreach (var kg in khungGios)
+                {
+                    var tenLoaiNgay = MapLoaiNgay.FirstOrDefault(x => x.Value == kg.MaLoaiNgay).Key;
+                    DsGioSan.Add(new GioSanItem
+                    {
+                        STT = stt++,
+                        MaChiTiet = kg.MaChiTiet,
+                        GioBatDau = kg.GioBatDau.ToString(@"hh\:mm"),
+                        GioKetThuc = kg.GioKetThuc.ToString(@"hh\:mm"),
+                        LoaiNgay = tenLoaiNgay ?? "",
+                        DonGia = GioSanItem.BangGiaQuyDinh.GetValueOrDefault(tenLoaiNgay ?? "", 0),
+                        IsBooked = kg.IsBooked
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                _dialog.Loi("Lỗi tải dữ liệu sân: " + ex.Message);
+            }
         }
 
         private void ThucHienLuu()
@@ -141,19 +187,18 @@ namespace QuanLySan.ViewModels
             if (string.IsNullOrWhiteSpace(LoaiSanSelected)) { _dialog.CanhBao("Vui lòng chọn Mã loại sân!"); return; }
             if (string.IsNullOrWhiteSpace(TinhTrangSelected)) { _dialog.CanhBao("Vui lòng chọn Tình trạng!"); return; }
 
-            // Validate giờ sân trước khi lưu (Quy định 1: các khung giờ không chồng lấn lên nhau)
-            var cacKhung = new List<(TimeSpan bd, TimeSpan kt)>();
+            var cacKhung = new List<(string id, TimeSpan bd, TimeSpan kt, string mln)>();
             for (int i = 0; i < DsGioSan.Count; i++)
             {
                 var item = DsGioSan[i];
                 if (!TryParseGio(item.GioBatDau, out TimeSpan bd))
                 {
-                    _dialog.CanhBao($"Dòng {i + 1}: Giờ bắt đầu \"{item.GioBatDau}\" không hợp lệ.\nVui lòng nhập theo định dạng HH:mm (VD: 07:00)", "Sai định dạng");
+                    _dialog.CanhBao($"Dòng {i + 1}: Giờ bắt đầu không hợp lệ.", "Sai định dạng");
                     return;
                 }
                 if (!TryParseGio(item.GioKetThuc, out TimeSpan kt))
                 {
-                    _dialog.CanhBao($"Dòng {i + 1}: Giờ kết thúc \"{item.GioKetThuc}\" không hợp lệ.\nVui lòng nhập theo định dạng HH:mm (VD: 08:00)", "Sai định dạng");
+                    _dialog.CanhBao($"Dòng {i + 1}: Giờ kết thúc không hợp lệ.", "Sai định dạng");
                     return;
                 }
                 if (kt <= bd)
@@ -166,10 +211,9 @@ namespace QuanLySan.ViewModels
                     _dialog.CanhBao($"Dòng {i + 1}: Vui lòng chọn Loại ngày.", "Thiếu thông tin");
                     return;
                 }
-                cacKhung.Add((bd, kt));
+                cacKhung.Add((item.MaChiTiet, bd, kt, MapLoaiNgay[item.LoaiNgay]));
             }
 
-            // Quy định 1: các khung giờ không được chồng lấn lên nhau
             for (int i = 0; i < cacKhung.Count; i++)
                 for (int j = i + 1; j < cacKhung.Count; j++)
                     if (cacKhung[i].bd < cacKhung[j].kt && cacKhung[j].bd < cacKhung[i].kt)
@@ -178,7 +222,6 @@ namespace QuanLySan.ViewModels
                         return;
                     }
 
-            // Dựng dữ liệu để lưu
             var san = new San
             {
                 MaSan = MaSan,
@@ -189,28 +232,22 @@ namespace QuanLySan.ViewModels
                 MaTinhTrang = _mapTinhTrang[TinhTrangSelected!]
             };
 
-            var khungGio = new List<(string, TimeSpan, TimeSpan, string)>();
-            for (int i = 0; i < DsGioSan.Count; i++)
-            {
-                string maChiTiet = $"{MaSan}-CT{(i + 1):D2}";
-                khungGio.Add((maChiTiet, cacKhung[i].bd, cacKhung[i].kt, MapLoaiNgay[DsGioSan[i].LoaiNgay]));
-            }
+            var updateItems = cacKhung.Where(k => !string.IsNullOrEmpty(k.id)).ToList();
+            var newItems = cacKhung.Where(k => string.IsNullOrEmpty(k.id)).ToList();
 
             try
             {
-                _sanRepo.ThemSan(san, khungGio);
-                _dialog.ThongBao("Lưu thành công dữ liệu xuống cơ sở dữ liệu!");
-                ThucHienHuy();
+                _sanRepo.CapNhatSan(san, updateItems, newItems, _deletedItems);
+                _dialog.ThongBao("Cập nhật thông tin sân thành công!");
+                _window.DialogResult = true;
+                _window.Close();
             }
             catch (Exception ex)
             {
-                _dialog.Loi("Lỗi lưu dữ liệu: " + ex.Message);
+                _dialog.Loi("Lỗi cập nhật dữ liệu: " + ex.Message);
             }
         }
 
-        /// <summary>
-        /// Parse chuỗi giờ "HH:mm", "H:mm", "HH" hoặc số nguyên (giờ) thành TimeSpan hợp lệ (00:00–23:59).
-        /// </summary>
         private static bool TryParseGio(string input, out TimeSpan result)
         {
             result = TimeSpan.Zero;
