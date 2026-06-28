@@ -3,9 +3,10 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:fa="http://schemas.awesome.incremented/wpf/xaml/fontawesome.sharp"
         xmlns:local="clr-namespace:QuanLySan.Views"
         mc:Ignorable="d"
-        Title="TraCuuHoiVien" Height="600" Width="1200"
+        Title="Tra Cứu Hội Viên" Height="650" Width="1100"
         WindowStartupLocation="CenterScreen"
         ResizeMode="NoResize"
         Background="Transparent"
@@ -124,11 +125,13 @@
                 <Grid>
                     <TextBlock Text="Tra cứu hội viên" FontSize="18" FontWeight="Bold"
                                Foreground="White" VerticalAlignment="Center"/>
-                    <Button Content="✕" HorizontalAlignment="Right" VerticalAlignment="Center"
-                            FontSize="16" FontWeight="Bold" Foreground="White"
+                    <Button HorizontalAlignment="Right" VerticalAlignment="Center"
+                            Foreground="White"
                             Background="Transparent" BorderThickness="0" Cursor="Hand"
                             Width="28" Height="28"
-                            Click="BtnThoat_Click"/>
+                            Click="BtnThoat_Click">
+                        <fa:IconBlock Icon="Xmark" FontSize="18" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Button>
                 </Grid>
             </Border>
 
