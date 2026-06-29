@@ -1,0 +1,384 @@
+USE QLSanTheThao;
+GO
+
+-- ====================================================================
+-- 1. XÓA DỮ LIỆU TÀI KHOẢN ADMIN CŨ (NẾU CÓ) ĐỂ LÀM SẠCH
+-- ====================================================================
+DECLARE @AdminId INT;
+SELECT @AdminId = AccountId FROM ACCOUNT WHERE Username = 'admin';
+IF @AdminId IS NOT NULL
+BEGIN
+    EXEC sp_set_session_context @key=N'AccountId', @value=@AdminId;
+    DELETE FROM DATSAN WHERE AccountId = @AdminId;
+    DELETE FROM CHITIETDATSAN WHERE MaSan IN (SELECT MaSan FROM SAN WHERE AccountId = @AdminId);
+    DELETE FROM SAN WHERE AccountId = @AdminId;
+    DELETE FROM HOIVIEN WHERE AccountId = @AdminId;
+    DELETE FROM THAMSO WHERE AccountId = @AdminId;
+    DELETE FROM TICHDIEM WHERE AccountId = @AdminId;
+    DELETE FROM ACCOUNT WHERE AccountId = @AdminId;
+END
+GO
+
+INSERT INTO ACCOUNT (Username, PasswordHash, Email) VALUES ('admin', '12345678', 'admin@hethong.vn');
+DECLARE @NewAdminId INT; SELECT @NewAdminId = AccountId FROM ACCOUNT WHERE Username = 'admin';
+EXEC sp_set_session_context @key=N'AccountId', @value=@NewAdminId;
+GO
+
+IF NOT EXISTS (SELECT 1 FROM LOAIHOIVIEN WHERE MaLoaiHoiVien = 'DO')
+    INSERT INTO LOAIHOIVIEN (MaLoaiHoiVien, TenLoaiHoiVien, DiemToiThieu, MucGiamGia) VALUES
+    ('DO', N'Đồng', 0, 0), ('BA', N'Bạc', 100, 0.03), ('VA', N'Vàng', 200, 0.05), ('KC', N'Kim cương', 300, 0.10);
+IF NOT EXISTS (SELECT 1 FROM LOAISAN WHERE MaLoaiSan = 'BD')
+    INSERT INTO LOAISAN (MaLoaiSan, TenLoaiSan) VALUES ('BD', N'Sân bóng đá');
+IF NOT EXISTS (SELECT 1 FROM LOAISAN WHERE MaLoaiSan = 'CL')
+    INSERT INTO LOAISAN (MaLoaiSan, TenLoaiSan) VALUES ('CL', N'Sân cầu lông');
+IF NOT EXISTS (SELECT 1 FROM LOAISAN WHERE MaLoaiSan = 'PB')
+    INSERT INTO LOAISAN (MaLoaiSan, TenLoaiSan) VALUES ('PB', N'Sân pickleball');
+IF NOT EXISTS (SELECT 1 FROM TINHTRANG WHERE MaTinhTrang = 'HD')
+    INSERT INTO TINHTRANG (MaTinhTrang, TenTinhTrang) VALUES ('HD', N'Hoạt động'), ('BT', N'Bảo trì');
+IF NOT EXISTS (SELECT 1 FROM LOAINGAY WHERE MaLoaiNgay = 'NT')
+    INSERT INTO LOAINGAY (MaLoaiNgay, TenLoaiNgay, DonGiaNgay) VALUES ('NT', N'Ngày thường', 50000), ('CT', N'Cuối tuần', 70000), ('NL', N'Ngày lễ', 100000);
+GO
+
+INSERT INTO THAMSO (MucDiemTichLuyMacDinh, MaLoaiHoiVienMacDinh, TinhTrangKhongDuocDat) VALUES (0, 'DO', 'BT');
+INSERT INTO TICHDIEM (HeSoTichDiem) VALUES (100000);
+GO
+
+-- SÂN
+INSERT INTO SAN (MaSan, TenSan, DiaChi, GhiChu, MaLoaiSan, MaTinhTrang) VALUES ('S12508', N'Sân Tao Đàn 1', N'TP.HCM', N'', 'CL', 'HD');
+INSERT INTO SAN (MaSan, TenSan, DiaChi, GhiChu, MaLoaiSan, MaTinhTrang) VALUES ('S30835', N'Sân Celadon 2', N'TP.HCM', N'', 'BD', 'HD');
+INSERT INTO SAN (MaSan, TenSan, DiaChi, GhiChu, MaLoaiSan, MaTinhTrang) VALUES ('S10103', N'Sân Tân Bình 3', N'TP.HCM', N'', 'BD', 'HD');
+INSERT INTO SAN (MaSan, TenSan, DiaChi, GhiChu, MaLoaiSan, MaTinhTrang) VALUES ('S20822', N'Sân Cộng Hòa 4', N'TP.HCM', N'', 'CL', 'HD');
+INSERT INTO SAN (MaSan, TenSan, DiaChi, GhiChu, MaLoaiSan, MaTinhTrang) VALUES ('S47234', N'Sân Bình Thạnh 5', N'TP.HCM', N'', 'PB', 'HD');
+INSERT INTO SAN (MaSan, TenSan, DiaChi, GhiChu, MaLoaiSan, MaTinhTrang) VALUES ('S69254', N'Sân Tân Bình 6', N'TP.HCM', N'', 'BD', 'BT');
+INSERT INTO SAN (MaSan, TenSan, DiaChi, GhiChu, MaLoaiSan, MaTinhTrang) VALUES ('S63182', N'Sân Phú Nhuận 7', N'TP.HCM', N'', 'BD', 'HD');
+INSERT INTO SAN (MaSan, TenSan, DiaChi, GhiChu, MaLoaiSan, MaTinhTrang) VALUES ('S73132', N'Sân Tao Đàn 8', N'TP.HCM', N'', 'BD', 'HD');
+INSERT INTO SAN (MaSan, TenSan, DiaChi, GhiChu, MaLoaiSan, MaTinhTrang) VALUES ('S40012', N'Sân Kỳ Hòa 9', N'TP.HCM', N'', 'CL', 'HD');
+INSERT INTO SAN (MaSan, TenSan, DiaChi, GhiChu, MaLoaiSan, MaTinhTrang) VALUES ('S30764', N'Sân Chảo Lửa 10', N'TP.HCM', N'', 'CL', 'HD');
+INSERT INTO SAN (MaSan, TenSan, DiaChi, GhiChu, MaLoaiSan, MaTinhTrang) VALUES ('S66082', N'Sân Kỳ Hòa 11', N'TP.HCM', N'', 'BD', 'HD');
+INSERT INTO SAN (MaSan, TenSan, DiaChi, GhiChu, MaLoaiSan, MaTinhTrang) VALUES ('S99504', N'Sân Sư Vạn Hạnh 12', N'TP.HCM', N'', 'BD', 'HD');
+INSERT INTO SAN (MaSan, TenSan, DiaChi, GhiChu, MaLoaiSan, MaTinhTrang) VALUES ('S67840', N'Sân Hải Đăng 13', N'TP.HCM', N'', 'PB', 'HD');
+INSERT INTO SAN (MaSan, TenSan, DiaChi, GhiChu, MaLoaiSan, MaTinhTrang) VALUES ('S73526', N'Sân Thống Nhất 14', N'TP.HCM', N'', 'BD', 'BT');
+INSERT INTO SAN (MaSan, TenSan, DiaChi, GhiChu, MaLoaiSan, MaTinhTrang) VALUES ('S24934', N'Sân Hải Đăng 15', N'TP.HCM', N'', 'PB', 'HD');
+GO
+
+-- KHUNG GIỜ CHI TIẾT
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S12508-CTE8E8', 'S12508', '05:00', '07:00', 'CT');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S12508-CTC25C', 'S12508', '07:00', '08:00', 'NL');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S12508-CTBA5D', 'S12508', '08:00', '10:00', 'CT');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S12508-CT43D0', 'S12508', '10:00', '12:00', 'NT');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S12508-CTCB10', 'S12508', '12:00', '13:00', 'NT');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S12508-CT49D9', 'S12508', '13:00', '15:00', 'NL');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S12508-CT13CC', 'S12508', '15:00', '16:00', 'NL');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S30835-CT9C38', 'S30835', '05:00', '06:00', 'NL');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S30835-CTBEDA', 'S30835', '06:00', '08:00', 'CT');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S30835-CT0498', 'S30835', '08:00', '09:00', 'CT');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S30835-CT0818', 'S30835', '09:00', '11:00', 'CT');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S30835-CTB020', 'S30835', '11:00', '13:00', 'NT');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S30835-CTF0A8', 'S30835', '13:00', '15:00', 'CT');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S10103-CT9C93', 'S10103', '05:00', '07:00', 'CT');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S10103-CTD944', 'S10103', '07:00', '09:00', 'CT');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S10103-CTA480', 'S10103', '09:00', '10:00', 'NL');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S10103-CTBEAE', 'S10103', '10:00', '11:00', 'CT');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S10103-CT0F09', 'S10103', '11:00', '13:00', 'CT');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S10103-CT1A3E', 'S10103', '13:00', '14:00', 'NT');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S20822-CT6581', 'S20822', '05:00', '07:00', 'NL');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S20822-CT34E9', 'S20822', '07:00', '08:00', 'NL');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S20822-CT5504', 'S20822', '08:00', '09:00', 'NL');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S20822-CT3D93', 'S20822', '09:00', '10:00', 'NL');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S20822-CT7C48', 'S20822', '10:00', '11:00', 'NL');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S20822-CT0634', 'S20822', '11:00', '12:00', 'NT');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S20822-CT6192', 'S20822', '12:00', '14:00', 'NT');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S20822-CT1809', 'S20822', '14:00', '15:00', 'CT');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S20822-CT1037', 'S20822', '15:00', '17:00', 'CT');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S20822-CT47B0', 'S20822', '17:00', '18:00', 'NL');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S47234-CTA018', 'S47234', '05:00', '07:00', 'NT');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S47234-CTC894', 'S47234', '07:00', '08:00', 'NT');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S47234-CT5A70', 'S47234', '08:00', '10:00', 'NL');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S47234-CT9BD6', 'S47234', '10:00', '11:00', 'NT');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S47234-CTEAC6', 'S47234', '11:00', '12:00', 'CT');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S47234-CT1F08', 'S47234', '12:00', '13:00', 'CT');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S47234-CT9062', 'S47234', '13:00', '15:00', 'NL');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S47234-CTF21C', 'S47234', '15:00', '17:00', 'CT');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S69254-CTE2DC', 'S69254', '05:00', '06:00', 'NT');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S69254-CT190D', 'S69254', '06:00', '07:00', 'NT');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S69254-CT4B33', 'S69254', '07:00', '09:00', 'NT');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S69254-CTF71A', 'S69254', '09:00', '10:00', 'CT');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S69254-CTB79E', 'S69254', '10:00', '11:00', 'NT');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S69254-CT0DDC', 'S69254', '11:00', '12:00', 'CT');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S69254-CT7C54', 'S69254', '12:00', '14:00', 'NL');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S69254-CT3B60', 'S69254', '14:00', '15:00', 'NL');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S69254-CT080E', 'S69254', '15:00', '17:00', 'NT');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S69254-CT921F', 'S69254', '17:00', '18:00', 'NT');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S63182-CT03E7', 'S63182', '05:00', '07:00', 'CT');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S63182-CT0102', 'S63182', '07:00', '08:00', 'NL');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S63182-CT2DE4', 'S63182', '08:00', '09:00', 'NT');
+GO
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S63182-CTFD3A', 'S63182', '09:00', '11:00', 'NT');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S63182-CT8F83', 'S63182', '11:00', '13:00', 'NL');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S63182-CT0497', 'S63182', '13:00', '14:00', 'NL');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S63182-CTA44A', 'S63182', '14:00', '15:00', 'CT');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S73132-CT939E', 'S73132', '05:00', '06:00', 'NL');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S73132-CT7542', 'S73132', '06:00', '07:00', 'NT');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S73132-CTFE6C', 'S73132', '07:00', '09:00', 'NT');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S73132-CT3C02', 'S73132', '09:00', '11:00', 'NL');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S73132-CT91BE', 'S73132', '11:00', '12:00', 'NL');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S73132-CTE4E2', 'S73132', '12:00', '14:00', 'NT');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S73132-CT0635', 'S73132', '14:00', '15:00', 'CT');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S73132-CTB23E', 'S73132', '15:00', '16:00', 'NT');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S73132-CT610B', 'S73132', '16:00', '17:00', 'NL');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S73132-CTE027', 'S73132', '17:00', '19:00', 'CT');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S40012-CTE984', 'S40012', '05:00', '07:00', 'NL');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S40012-CT1B74', 'S40012', '07:00', '08:00', 'CT');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S40012-CT4663', 'S40012', '08:00', '10:00', 'CT');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S40012-CT8EA9', 'S40012', '10:00', '11:00', 'NT');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S40012-CT27A9', 'S40012', '11:00', '13:00', 'NL');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S40012-CT96E8', 'S40012', '13:00', '15:00', 'NL');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S40012-CT470A', 'S40012', '15:00', '17:00', 'NL');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S40012-CT4B36', 'S40012', '17:00', '19:00', 'NT');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S40012-CTCC35', 'S40012', '19:00', '21:00', 'NT');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S30764-CT6A12', 'S30764', '05:00', '07:00', 'CT');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S30764-CTCFFB', 'S30764', '07:00', '08:00', 'NT');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S30764-CTCBB3', 'S30764', '08:00', '09:00', 'CT');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S30764-CT4696', 'S30764', '09:00', '10:00', 'CT');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S30764-CTACFF', 'S30764', '10:00', '12:00', 'CT');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S30764-CT902D', 'S30764', '12:00', '13:00', 'CT');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S66082-CTB0CB', 'S66082', '05:00', '06:00', 'NT');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S66082-CT54A8', 'S66082', '06:00', '07:00', 'NT');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S66082-CT4476', 'S66082', '07:00', '09:00', 'NL');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S66082-CTC33C', 'S66082', '09:00', '11:00', 'NL');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S66082-CT3D0A', 'S66082', '11:00', '12:00', 'NT');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S66082-CT5475', 'S66082', '12:00', '14:00', 'NT');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S66082-CTA5B9', 'S66082', '14:00', '16:00', 'NT');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S66082-CT0774', 'S66082', '16:00', '18:00', 'NT');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S99504-CTA82C', 'S99504', '05:00', '06:00', 'CT');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S99504-CT2440', 'S99504', '06:00', '07:00', 'CT');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S99504-CT236D', 'S99504', '07:00', '08:00', 'CT');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S99504-CTDF95', 'S99504', '08:00', '10:00', 'CT');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S99504-CT4320', 'S99504', '10:00', '11:00', 'NT');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S99504-CTF73C', 'S99504', '11:00', '13:00', 'NL');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S99504-CT5C8B', 'S99504', '13:00', '14:00', 'NT');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S99504-CT0125', 'S99504', '14:00', '15:00', 'NL');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S67840-CT4DE1', 'S67840', '05:00', '06:00', 'NT');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S67840-CT18F9', 'S67840', '06:00', '08:00', 'NT');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S67840-CTBEA6', 'S67840', '08:00', '10:00', 'NT');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S67840-CTC188', 'S67840', '10:00', '12:00', 'CT');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S67840-CTB963', 'S67840', '12:00', '13:00', 'CT');
+GO
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S67840-CTC7A9', 'S67840', '13:00', '15:00', 'NT');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S67840-CT4AA6', 'S67840', '15:00', '17:00', 'NT');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S67840-CTB327', 'S67840', '17:00', '18:00', 'CT');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S73526-CT6D5F', 'S73526', '05:00', '07:00', 'NL');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S73526-CTE173', 'S73526', '07:00', '08:00', 'NT');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S73526-CT0393', 'S73526', '08:00', '09:00', 'NT');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S73526-CTF209', 'S73526', '09:00', '11:00', 'NL');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S73526-CT75D0', 'S73526', '11:00', '13:00', 'NL');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S73526-CT3343', 'S73526', '13:00', '15:00', 'NT');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S73526-CT38CE', 'S73526', '15:00', '17:00', 'NL');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S73526-CT942E', 'S73526', '17:00', '19:00', 'CT');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S73526-CTA0FC', 'S73526', '19:00', '21:00', 'CT');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S24934-CT5C82', 'S24934', '05:00', '06:00', 'NL');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S24934-CTF6CC', 'S24934', '06:00', '07:00', 'NT');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S24934-CTC727', 'S24934', '07:00', '08:00', 'NL');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S24934-CTE958', 'S24934', '08:00', '10:00', 'NT');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S24934-CT9810', 'S24934', '10:00', '12:00', 'NT');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S24934-CTDCAB', 'S24934', '12:00', '14:00', 'NT');
+INSERT INTO CHITIETDATSAN (MaChiTiet, MaSan, GioBatDau, GioKetThuc, MaLoaiNgay) VALUES ('S24934-CT044F', 'S24934', '14:00', '16:00', 'NL');
+GO
+
+-- HỘI VIÊN
+INSERT INTO HOIVIEN (MaHoiVien, HoTen, SDT, Email, GioiTinh, NgayDangKyHoiVien, DiemTichLuy, MaLoaiHoiVien, GhiChu) VALUES ('HV99666', N'Đặng Tuấn Trọng', '0967674486', 'user0_0967674486@example.com', N'Nữ', '2025-11-11', 337, 'KC', N'');
+INSERT INTO HOIVIEN (MaHoiVien, HoTen, SDT, Email, GioiTinh, NgayDangKyHoiVien, DiemTichLuy, MaLoaiHoiVien, GhiChu) VALUES ('HV57572', N'Lê Mỹ Đức', '0992801146', 'user1_0992801146@example.com', N'Nam', '2025-05-09', 254, 'VA', N'');
+INSERT INTO HOIVIEN (MaHoiVien, HoTen, SDT, Email, GioiTinh, NgayDangKyHoiVien, DiemTichLuy, MaLoaiHoiVien, GhiChu) VALUES ('HV23172', N'Võ Minh Hải', '0930620401', 'user2_0930620401@example.com', N'Nam', '2025-11-03', 205, 'VA', N'');
+INSERT INTO HOIVIEN (MaHoiVien, HoTen, SDT, Email, GioiTinh, NgayDangKyHoiVien, DiemTichLuy, MaLoaiHoiVien, GhiChu) VALUES ('HV58707', N'Phạm Hải Đức', '0996344449', 'user3_0996344449@example.com', N'Nam', '2025-05-04', 342, 'KC', N'');
+INSERT INTO HOIVIEN (MaHoiVien, HoTen, SDT, Email, GioiTinh, NgayDangKyHoiVien, DiemTichLuy, MaLoaiHoiVien, GhiChu) VALUES ('HV11472', N'Bùi Tuấn Hải', '0977542259', 'user4_0977542259@example.com', N'Nữ', '2025-11-12', 399, 'KC', N'');
+INSERT INTO HOIVIEN (MaHoiVien, HoTen, SDT, Email, GioiTinh, NgayDangKyHoiVien, DiemTichLuy, MaLoaiHoiVien, GhiChu) VALUES ('HV86807', N'Phạm Ngọc Vinh', '0954349269', 'user5_0954349269@example.com', N'Nữ', '2025-01-18', 27, 'DO', N'');
+INSERT INTO HOIVIEN (MaHoiVien, HoTen, SDT, Email, GioiTinh, NgayDangKyHoiVien, DiemTichLuy, MaLoaiHoiVien, GhiChu) VALUES ('HV21087', N'Huỳnh Ngọc Trọng', '0944409247', 'user6_0944409247@example.com', N'Nữ', '2025-07-28', 52, 'DO', N'');
+INSERT INTO HOIVIEN (MaHoiVien, HoTen, SDT, Email, GioiTinh, NgayDangKyHoiVien, DiemTichLuy, MaLoaiHoiVien, GhiChu) VALUES ('HV16661', N'Vũ Thu An', '0918093442', 'user7_0918093442@example.com', N'Nữ', '2025-12-16', 112, 'BA', N'');
+INSERT INTO HOIVIEN (MaHoiVien, HoTen, SDT, Email, GioiTinh, NgayDangKyHoiVien, DiemTichLuy, MaLoaiHoiVien, GhiChu) VALUES ('HV81132', N'Phạm Thanh Cường', '0940200255', 'user8_0940200255@example.com', N'Nữ', '2025-04-14', 242, 'VA', N'');
+INSERT INTO HOIVIEN (MaHoiVien, HoTen, SDT, Email, GioiTinh, NgayDangKyHoiVien, DiemTichLuy, MaLoaiHoiVien, GhiChu) VALUES ('HV22078', N'Ngô Tuấn Thảo', '0957781798', 'user9_0957781798@example.com', N'Nam', '2025-03-03', 98, 'DO', N'');
+INSERT INTO HOIVIEN (MaHoiVien, HoTen, SDT, Email, GioiTinh, NgayDangKyHoiVien, DiemTichLuy, MaLoaiHoiVien, GhiChu) VALUES ('HV34417', N'Vũ Hải Giang', '0964028662', 'user10_0964028662@example.com', N'Nữ', '2025-12-06', 360, 'KC', N'');
+INSERT INTO HOIVIEN (MaHoiVien, HoTen, SDT, Email, GioiTinh, NgayDangKyHoiVien, DiemTichLuy, MaLoaiHoiVien, GhiChu) VALUES ('HV95645', N'Phan Đình Đức', '0937792845', 'user11_0937792845@example.com', N'Nữ', '2025-12-23', 243, 'VA', N'');
+INSERT INTO HOIVIEN (MaHoiVien, HoTen, SDT, Email, GioiTinh, NgayDangKyHoiVien, DiemTichLuy, MaLoaiHoiVien, GhiChu) VALUES ('HV83958', N'Bùi Thị Oanh', '0989634014', 'user12_0989634014@example.com', N'Nam', '2025-02-16', 67, 'DO', N'');
+INSERT INTO HOIVIEN (MaHoiVien, HoTen, SDT, Email, GioiTinh, NgayDangKyHoiVien, DiemTichLuy, MaLoaiHoiVien, GhiChu) VALUES ('HV39121', N'Huỳnh Hoàng Thảo', '0991380720', 'user13_0991380720@example.com', N'Nữ', '2025-02-24', 3, 'DO', N'');
+INSERT INTO HOIVIEN (MaHoiVien, HoTen, SDT, Email, GioiTinh, NgayDangKyHoiVien, DiemTichLuy, MaLoaiHoiVien, GhiChu) VALUES ('HV95461', N'Lê Thị Yến', '0937112619', 'user14_0937112619@example.com', N'Nam', '2025-06-19', 9, 'DO', N'');
+INSERT INTO HOIVIEN (MaHoiVien, HoTen, SDT, Email, GioiTinh, NgayDangKyHoiVien, DiemTichLuy, MaLoaiHoiVien, GhiChu) VALUES ('HV85198', N'Phạm Minh An', '0932294381', 'user15_0932294381@example.com', N'Nữ', '2025-04-21', 76, 'DO', N'');
+INSERT INTO HOIVIEN (MaHoiVien, HoTen, SDT, Email, GioiTinh, NgayDangKyHoiVien, DiemTichLuy, MaLoaiHoiVien, GhiChu) VALUES ('HV53450', N'Phan Thanh Yến', '0952808706', 'user16_0952808706@example.com', N'Nữ', '2025-12-07', 10, 'DO', N'');
+INSERT INTO HOIVIEN (MaHoiVien, HoTen, SDT, Email, GioiTinh, NgayDangKyHoiVien, DiemTichLuy, MaLoaiHoiVien, GhiChu) VALUES ('HV96481', N'Phạm Thu Thảo', '0994126452', 'user17_0994126452@example.com', N'Nam', '2025-05-28', 3, 'DO', N'');
+INSERT INTO HOIVIEN (MaHoiVien, HoTen, SDT, Email, GioiTinh, NgayDangKyHoiVien, DiemTichLuy, MaLoaiHoiVien, GhiChu) VALUES ('HV11363', N'Võ Ngọc Hải', '0989094366', 'user18_0989094366@example.com', N'Nam', '2025-09-04', 135, 'BA', N'');
+INSERT INTO HOIVIEN (MaHoiVien, HoTen, SDT, Email, GioiTinh, NgayDangKyHoiVien, DiemTichLuy, MaLoaiHoiVien, GhiChu) VALUES ('HV42888', N'Nguyễn Thanh Đức', '0986015950', 'user19_0986015950@example.com', N'Nữ', '2025-10-10', 210, 'VA', N'');
+INSERT INTO HOIVIEN (MaHoiVien, HoTen, SDT, Email, GioiTinh, NgayDangKyHoiVien, DiemTichLuy, MaLoaiHoiVien, GhiChu) VALUES ('HV38313', N'Phạm Văn Dũng', '0990449674', 'user20_0990449674@example.com', N'Nam', '2025-10-16', 94, 'DO', N'');
+INSERT INTO HOIVIEN (MaHoiVien, HoTen, SDT, Email, GioiTinh, NgayDangKyHoiVien, DiemTichLuy, MaLoaiHoiVien, GhiChu) VALUES ('HV58314', N'Hồ Thị Bình', '0970948790', 'user21_0970948790@example.com', N'Nam', '2025-01-05', 323, 'KC', N'');
+INSERT INTO HOIVIEN (MaHoiVien, HoTen, SDT, Email, GioiTinh, NgayDangKyHoiVien, DiemTichLuy, MaLoaiHoiVien, GhiChu) VALUES ('HV48143', N'Trần Bảo Trọng', '0934692311', 'user22_0934692311@example.com', N'Nam', '2025-04-17', 38, 'DO', N'');
+INSERT INTO HOIVIEN (MaHoiVien, HoTen, SDT, Email, GioiTinh, NgayDangKyHoiVien, DiemTichLuy, MaLoaiHoiVien, GhiChu) VALUES ('HV11446', N'Đặng Mỹ An', '0965946626', 'user23_0965946626@example.com', N'Nữ', '2025-05-05', 265, 'VA', N'');
+INSERT INTO HOIVIEN (MaHoiVien, HoTen, SDT, Email, GioiTinh, NgayDangKyHoiVien, DiemTichLuy, MaLoaiHoiVien, GhiChu) VALUES ('HV47191', N'Võ Hoàng Hải', '0935710130', 'user24_0935710130@example.com', N'Nam', '2025-09-18', 24, 'DO', N'');
+INSERT INTO HOIVIEN (MaHoiVien, HoTen, SDT, Email, GioiTinh, NgayDangKyHoiVien, DiemTichLuy, MaLoaiHoiVien, GhiChu) VALUES ('HV58003', N'Đỗ Mỹ Oanh', '0965925676', 'user25_0965925676@example.com', N'Nữ', '2025-02-08', 90, 'DO', N'');
+INSERT INTO HOIVIEN (MaHoiVien, HoTen, SDT, Email, GioiTinh, NgayDangKyHoiVien, DiemTichLuy, MaLoaiHoiVien, GhiChu) VALUES ('HV28986', N'Trần Mỹ Vinh', '0943185137', 'user26_0943185137@example.com', N'Nam', '2025-07-11', 69, 'DO', N'');
+INSERT INTO HOIVIEN (MaHoiVien, HoTen, SDT, Email, GioiTinh, NgayDangKyHoiVien, DiemTichLuy, MaLoaiHoiVien, GhiChu) VALUES ('HV99140', N'Lê Bảo Vinh', '0937178859', 'user27_0937178859@example.com', N'Nữ', '2025-01-23', 122, 'BA', N'');
+INSERT INTO HOIVIEN (MaHoiVien, HoTen, SDT, Email, GioiTinh, NgayDangKyHoiVien, DiemTichLuy, MaLoaiHoiVien, GhiChu) VALUES ('HV77697', N'Bùi Thanh Nhung', '0986747219', 'user28_0986747219@example.com', N'Nam', '2025-07-13', 90, 'DO', N'');
+INSERT INTO HOIVIEN (MaHoiVien, HoTen, SDT, Email, GioiTinh, NgayDangKyHoiVien, DiemTichLuy, MaLoaiHoiVien, GhiChu) VALUES ('HV17538', N'Hoàng Bảo Vinh', '0971514954', 'user29_0971514954@example.com', N'Nam', '2025-11-06', 237, 'VA', N'');
+INSERT INTO HOIVIEN (MaHoiVien, HoTen, SDT, Email, GioiTinh, NgayDangKyHoiVien, DiemTichLuy, MaLoaiHoiVien, GhiChu) VALUES ('HV69822', N'Đặng Hải Oanh', '0954734601', 'user30_0954734601@example.com', N'Nữ', '2025-04-21', 290, 'VA', N'');
+INSERT INTO HOIVIEN (MaHoiVien, HoTen, SDT, Email, GioiTinh, NgayDangKyHoiVien, DiemTichLuy, MaLoaiHoiVien, GhiChu) VALUES ('HV50395', N'Huỳnh Hoàng Vinh', '0981882911', 'user31_0981882911@example.com', N'Nam', '2025-07-01', 372, 'KC', N'');
+INSERT INTO HOIVIEN (MaHoiVien, HoTen, SDT, Email, GioiTinh, NgayDangKyHoiVien, DiemTichLuy, MaLoaiHoiVien, GhiChu) VALUES ('HV74667', N'Đặng Minh Dũng', '0944071490', 'user32_0944071490@example.com', N'Nữ', '2025-12-06', 342, 'KC', N'');
+INSERT INTO HOIVIEN (MaHoiVien, HoTen, SDT, Email, GioiTinh, NgayDangKyHoiVien, DiemTichLuy, MaLoaiHoiVien, GhiChu) VALUES ('HV86777', N'Bùi Quang Hùng', '0942864956', 'user33_0942864956@example.com', N'Nam', '2025-09-26', 346, 'KC', N'');
+INSERT INTO HOIVIEN (MaHoiVien, HoTen, SDT, Email, GioiTinh, NgayDangKyHoiVien, DiemTichLuy, MaLoaiHoiVien, GhiChu) VALUES ('HV88111', N'Lê Tuấn Dũng', '0934783695', 'user34_0934783695@example.com', N'Nữ', '2025-10-24', 88, 'DO', N'');
+INSERT INTO HOIVIEN (MaHoiVien, HoTen, SDT, Email, GioiTinh, NgayDangKyHoiVien, DiemTichLuy, MaLoaiHoiVien, GhiChu) VALUES ('HV30024', N'Đỗ Tuấn Cường', '0917231661', 'user35_0917231661@example.com', N'Nam', '2025-08-26', 118, 'BA', N'');
+INSERT INTO HOIVIEN (MaHoiVien, HoTen, SDT, Email, GioiTinh, NgayDangKyHoiVien, DiemTichLuy, MaLoaiHoiVien, GhiChu) VALUES ('HV50759', N'Lê Ngọc Thảo', '0987430855', 'user36_0987430855@example.com', N'Nam', '2025-01-07', 386, 'KC', N'');
+INSERT INTO HOIVIEN (MaHoiVien, HoTen, SDT, Email, GioiTinh, NgayDangKyHoiVien, DiemTichLuy, MaLoaiHoiVien, GhiChu) VALUES ('HV56877', N'Đỗ Thu Dũng', '0951303315', 'user37_0951303315@example.com', N'Nam', '2025-02-16', 207, 'VA', N'');
+INSERT INTO HOIVIEN (MaHoiVien, HoTen, SDT, Email, GioiTinh, NgayDangKyHoiVien, DiemTichLuy, MaLoaiHoiVien, GhiChu) VALUES ('HV77374', N'Phạm Bảo Thảo', '0947058965', 'user38_0947058965@example.com', N'Nữ', '2025-03-21', 384, 'KC', N'');
+INSERT INTO HOIVIEN (MaHoiVien, HoTen, SDT, Email, GioiTinh, NgayDangKyHoiVien, DiemTichLuy, MaLoaiHoiVien, GhiChu) VALUES ('HV58135', N'Lê Bảo Bình', '0944341761', 'user39_0944341761@example.com', N'Nữ', '2025-02-11', 160, 'BA', N'');
+GO
+
+-- ĐẶT SÂN
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10001', 'HV53450', 'S10103-CTA480', GETDATE() - 30, 100000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10002', 'HV99666', 'S40012-CT96E8', GETDATE() - 25, 180000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10003', 'HV95461', 'S24934-CTF6CC', GETDATE() - 6, 50000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10004', 'HV42888', 'S40012-CT470A', GETDATE() - 10, 190000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10005', 'HV99666', 'S24934-CTC727', GETDATE() - 20, 90000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10006', 'HV34417', 'S73132-CTFE6C', GETDATE() - 15, 90000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10007', 'HV42888', 'S99504-CT236D', GETDATE() - 24, 66500, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10008', 'HV58135', 'S40012-CT1B74', GETDATE() - 36, 67900, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10009', 'HV28986', 'S67840-CTB963', GETDATE() - 7, 70000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10010', 'HV38313', 'S67840-CT4AA6', GETDATE() - 13, 100000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10011', 'HV95461', 'S12508-CTCB10', GETDATE() - 40, 50000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10012', 'HV50395', 'S30835-CTB020', GETDATE() - 36, 90000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10013', 'HV58707', 'S12508-CTBA5D', GETDATE() - 2, 126000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10014', 'HV39121', 'S73132-CT0635', GETDATE() - 9, 70000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10015', 'HV53450', 'S73132-CTE4E2', GETDATE() - 25, 100000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10016', 'HV50395', 'S40012-CTCC35', GETDATE(), 90000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10017', 'HV99666', 'S99504-CT236D', GETDATE() - 30, 63000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10018', 'HV57572', 'S67840-CTC7A9', GETDATE() - 7, 95000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10019', 'HV48143', 'S24934-CT9810', GETDATE(), 100000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10020', 'HV50395', 'S63182-CT8F83', GETDATE() - 38, 180000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10021', 'HV38313', 'S63182-CT03E7', GETDATE() - 37, 140000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10022', 'HV11363', 'S10103-CT9C93', GETDATE() - 30, 135800, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10023', 'HV16661', 'S66082-CTA5B9', GETDATE() - 24, 97000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10024', 'HV86807', 'S20822-CT47B0', GETDATE() - 11, 100000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10025', 'HV86777', 'S30764-CTCBB3', GETDATE() - 3, 63000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10026', 'HV58135', 'S12508-CTC25C', GETDATE() - 37, 97000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10027', 'HV83958', 'S47234-CTF21C', GETDATE() - 5, 140000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10028', 'HV96481', 'S99504-CT5C8B', GETDATE() - 22, 50000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10029', 'HV11363', 'S99504-CT0125', GETDATE() + 3, 97000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10030', 'HV48143', 'S10103-CT1A3E', GETDATE() - 11, 50000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10031', 'HV11363', 'S67840-CTC188', GETDATE(), 135800, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10032', 'HV57572', 'S40012-CT8EA9', GETDATE() - 21, 47500, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10033', 'HV30024', 'S10103-CT0F09', GETDATE() - 8, 135800, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10034', 'HV83958', 'S67840-CTC7A9', GETDATE() - 17, 100000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10035', 'HV47191', 'S40012-CTCC35', GETDATE() + 4, 100000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10036', 'HV58135', 'S66082-CT4476', GETDATE() - 30, 194000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10037', 'HV56877', 'S40012-CT1B74', GETDATE() - 6, 66500, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10038', 'HV38313', 'S30764-CTACFF', GETDATE() - 6, 140000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10039', 'HV96481', 'S67840-CT4DE1', GETDATE() - 2, 50000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10040', 'HV53450', 'S20822-CT1037', GETDATE() - 35, 140000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10041', 'HV34417', 'S40012-CT4B36', GETDATE() - 4, 90000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10042', 'HV85198', 'S66082-CT54A8', GETDATE() - 1, 50000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10043', 'HV53450', 'S12508-CT49D9', GETDATE() - 13, 200000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10044', 'HV21087', 'S66082-CT5475', GETDATE() - 29, 100000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10045', 'HV11363', 'S47234-CTEAC6', GETDATE() - 36, 67900, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10046', 'HV77374', 'S24934-CTE958', GETDATE() - 27, 90000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10047', 'HV74667', 'S47234-CT1F08', GETDATE() - 9, 63000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10048', 'HV48143', 'S24934-CT5C82', GETDATE() - 40, 100000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10049', 'HV99140', 'S66082-CTA5B9', GETDATE() - 8, 97000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10050', 'HV69822', 'S20822-CT6192', GETDATE() + 1, 95000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10051', 'HV69822', 'S66082-CTA5B9', GETDATE() - 28, 95000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10052', 'HV50759', 'S67840-CT4DE1', GETDATE() - 38, 45000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10053', 'HV16661', 'S63182-CTA44A', GETDATE() + 3, 67900, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10054', 'HV11472', 'S24934-CT5C82', GETDATE() - 15, 90000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10055', 'HV81132', 'S40012-CT470A', GETDATE() - 32, 190000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10056', 'HV16661', 'S67840-CT18F9', GETDATE() - 14, 97000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10057', 'HV11363', 'S24934-CTE958', GETDATE() + 2, 97000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10058', 'HV83958', 'S47234-CTA018', GETDATE() - 35, 100000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10059', 'HV47191', 'S40012-CT1B74', GETDATE() - 12, 70000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10060', 'HV48143', 'S67840-CT4DE1', GETDATE() - 8, 50000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10061', 'HV53450', 'S20822-CT3D93', GETDATE() - 11, 100000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10062', 'HV58003', 'S47234-CT5A70', GETDATE() - 14, 200000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10063', 'HV86807', 'S30835-CTF0A8', GETDATE() - 26, 140000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10064', 'HV58003', 'S10103-CT1A3E', GETDATE() - 16, 50000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10065', 'HV58314', 'S40012-CT1B74', GETDATE() - 29, 63000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10066', 'HV58135', 'S24934-CT9810', GETDATE() - 16, 97000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10067', 'HV57572', 'S66082-CTC33C', GETDATE() + 5, 190000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10068', 'HV11472', 'S40012-CT1B74', GETDATE() + 5, 63000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10069', 'HV85198', 'S40012-CT8EA9', GETDATE() - 33, 50000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10070', 'HV58707', 'S63182-CT0497', GETDATE() + 5, 90000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10071', 'HV11446', 'S66082-CT4476', GETDATE() - 31, 190000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10072', 'HV30024', 'S66082-CT4476', GETDATE() - 36, 194000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10073', 'HV85198', 'S40012-CT27A9', GETDATE() - 40, 200000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10074', 'HV30024', 'S73132-CT610B', GETDATE() - 35, 97000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10075', 'HV96481', 'S66082-CT5475', GETDATE() + 4, 100000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10076', 'HV17538', 'S10103-CTBEAE', GETDATE() - 10, 66500, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10077', 'HV42888', 'S73132-CT939E', GETDATE() - 27, 95000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10078', 'HV50395', 'S66082-CT4476', GETDATE() - 18, 180000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10079', 'HV11446', 'S99504-CTA82C', GETDATE() - 12, 66500, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10080', 'HV42888', 'S73132-CT0635', GETDATE() - 2, 66500, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10081', 'HV42888', 'S67840-CTBEA6', GETDATE() - 27, 95000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10082', 'HV95645', 'S73132-CT91BE', GETDATE() - 28, 95000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10083', 'HV86777', 'S10103-CT9C93', GETDATE() - 9, 126000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10084', 'HV21087', 'S63182-CT2DE4', GETDATE() - 30, 50000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10085', 'HV50759', 'S20822-CT47B0', GETDATE() - 29, 90000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10086', 'HV23172', 'S12508-CTCB10', GETDATE() - 11, 47500, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10087', 'HV95461', 'S40012-CT1B74', GETDATE() - 13, 70000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10088', 'HV50759', 'S67840-CTB327', GETDATE() - 17, 63000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10089', 'HV34417', 'S99504-CTDF95', GETDATE() + 3, 126000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10090', 'HV22078', 'S99504-CTF73C', GETDATE() - 20, 200000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10091', 'HV23172', 'S63182-CTFD3A', GETDATE() - 24, 95000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10092', 'HV22078', 'S67840-CTC7A9', GETDATE() - 29, 100000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10093', 'HV81132', 'S40012-CT8EA9', GETDATE() - 13, 47500, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10094', 'HV77697', 'S73132-CT91BE', GETDATE() - 25, 100000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10095', 'HV95461', 'S20822-CT6192', GETDATE() - 34, 100000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10096', 'HV42888', 'S20822-CT1809', GETDATE() - 10, 66500, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10097', 'HV50395', 'S66082-CTC33C', GETDATE() - 36, 180000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10098', 'HV11472', 'S99504-CTF73C', GETDATE() - 15, 180000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10099', 'HV85198', 'S67840-CT18F9', GETDATE(), 100000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10100', 'HV23172', 'S30764-CTACFF', GETDATE() - 7, 133000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10101', 'HV77374', 'S73132-CT3C02', GETDATE() - 32, 180000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10102', 'HV39121', 'S63182-CTA44A', GETDATE() - 2, 70000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10103', 'HV77697', 'S67840-CTC188', GETDATE() - 1, 140000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10104', 'HV34417', 'S24934-CTDCAB', GETDATE() - 21, 90000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10105', 'HV99666', 'S99504-CT2440', GETDATE(), 63000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10106', 'HV47191', 'S12508-CTBA5D', GETDATE() - 20, 140000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10107', 'HV85198', 'S47234-CTF21C', GETDATE() - 8, 140000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10108', 'HV81132', 'S47234-CTF21C', GETDATE() - 38, 133000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10109', 'HV86807', 'S63182-CTFD3A', GETDATE() - 3, 100000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10110', 'HV69822', 'S73132-CT610B', GETDATE() - 28, 95000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10111', 'HV21087', 'S47234-CTC894', GETDATE() - 24, 50000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10112', 'HV23172', 'S24934-CTE958', GETDATE() - 11, 95000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10113', 'HV22078', 'S63182-CTFD3A', GETDATE() - 29, 100000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10114', 'HV23172', 'S67840-CTBEA6', GETDATE() - 34, 95000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10115', 'HV34417', 'S20822-CT47B0', GETDATE() - 18, 90000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10116', 'HV21087', 'S24934-CTC727', GETDATE() - 38, 100000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10117', 'HV88111', 'S67840-CTC188', GETDATE() - 15, 140000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10118', 'HV21087', 'S66082-CTB0CB', GETDATE() - 25, 50000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10119', 'HV22078', 'S63182-CT2DE4', GETDATE() - 10, 50000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10120', 'HV77374', 'S99504-CTF73C', GETDATE() - 39, 180000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10121', 'HV50395', 'S40012-CTCC35', GETDATE() - 8, 90000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10122', 'HV11446', 'S66082-CT54A8', GETDATE() - 31, 47500, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10123', 'HV30024', 'S10103-CTD944', GETDATE() - 36, 135800, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10124', 'HV11446', 'S20822-CT6192', GETDATE() - 18, 95000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10125', 'HV58003', 'S12508-CT49D9', GETDATE() - 10, 200000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10126', 'HV99666', 'S99504-CTDF95', GETDATE() - 20, 126000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10127', 'HV34417', 'S40012-CTCC35', GETDATE() - 37, 90000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10128', 'HV56877', 'S67840-CTC7A9', GETDATE() - 31, 95000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10129', 'HV28986', 'S47234-CT1F08', GETDATE() - 28, 70000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10130', 'HV96481', 'S66082-CTA5B9', GETDATE() - 37, 100000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10131', 'HV77374', 'S47234-CTF21C', GETDATE() - 13, 126000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10132', 'HV11363', 'S24934-CTC727', GETDATE() - 28, 97000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10133', 'HV28986', 'S20822-CT5504', GETDATE() - 13, 100000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10134', 'HV95461', 'S20822-CT5504', GETDATE() - 39, 100000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10135', 'HV81132', 'S12508-CT49D9', GETDATE() - 37, 190000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10136', 'HV85198', 'S99504-CT236D', GETDATE() - 13, 70000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10137', 'HV58314', 'S73132-CTE4E2', GETDATE() - 18, 90000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10138', 'HV11363', 'S99504-CT236D', GETDATE() - 38, 67900, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10139', 'HV58003', 'S73132-CTE027', GETDATE() - 37, 140000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10140', 'HV50395', 'S73132-CT0635', GETDATE() - 7, 63000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10141', 'HV34417', 'S20822-CT5504', GETDATE() - 1, 90000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10142', 'HV22078', 'S47234-CT5A70', GETDATE() - 31, 200000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10143', 'HV53450', 'S10103-CT1A3E', GETDATE() - 3, 50000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10144', 'HV16661', 'S24934-CTE958', GETDATE() - 26, 97000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10145', 'HV11363', 'S30764-CT6A12', GETDATE() - 38, 135800, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10146', 'HV74667', 'S47234-CTEAC6', GETDATE() - 24, 63000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10147', 'HV56877', 'S47234-CTF21C', GETDATE() - 36, 133000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10148', 'HV58003', 'S67840-CTB327', GETDATE() - 16, 70000, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10149', 'HV99140', 'S66082-CT3D0A', GETDATE() + 1, 48500, N'');
+INSERT INTO DATSAN (MaDatSan, MaHoiVien, MaChiTiet, NgayDat, TongTien, GhiChu) VALUES ('DS10150', 'HV16661', 'S24934-CTC727', GETDATE() - 39, 97000, N'');
+GO
+
+PRINT N'✅ Đã nạp thành công toàn bộ dữ liệu mẫu khổng lồ!';
