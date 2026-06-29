@@ -180,7 +180,16 @@
 
                     <TextBlock Text="Danh sách loại hội viên" Style="{StaticResource FieldLabel}" FontSize="14" Margin="0,0,0,10"/>
 
-                    <DataGrid ItemsSource="{Binding DanhSachLoaiHoiVien}" Style="{StaticResource CustomDataGrid}" CellStyle="{StaticResource CleanDataGridCell}" Height="180" Margin="0,0,0,0">
+                    <DataGrid ItemsSource="{Binding DanhSachLoaiHoiVien}" SelectedItem="{Binding LoaiHoiVienSelected}" Style="{StaticResource CustomDataGrid}" CellStyle="{StaticResource CleanDataGridCell}" Height="180" Margin="0,0,0,0">
+                        <DataGrid.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Xóa hạng này" Command="{Binding XoaCommand}" CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=ContextMenu}, Path=PlacementTarget.SelectedItem}">
+                                    <MenuItem.Icon>
+                                        <fa:IconBlock Icon="Trash" Foreground="#FF4D4D"/>
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                            </ContextMenu>
+                        </DataGrid.ContextMenu>
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="STT" Binding="{Binding STT}" Width="60"/>
                             <DataGridTextColumn Header="Loại hội viên" Binding="{Binding TenHang}" Width="*"/>

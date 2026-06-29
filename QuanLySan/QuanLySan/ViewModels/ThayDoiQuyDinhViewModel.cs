@@ -37,6 +37,8 @@ namespace QuanLySan.ViewModels
         public ICommand ThayDoiCommand { get; }
         public ICommand ThemCommand { get; }
 
+        public ICommand XoaCommand { get; }
+
         public ThayDoiQuyDinhViewModel()
         {
             _repo = new QuyDinhRepository();
@@ -48,6 +50,7 @@ namespace QuanLySan.ViewModels
             {
                 MessageBox.Show("Tính năng thêm loại hội viên sẽ được cập nhật trong sprint tiếp theo.", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
             });
+            XoaCommand = new RelayCommand(param => ThucHienXoa(param as LoaiHoiVienQuyDinh));
         }
 
         private void LoadData()
@@ -74,7 +77,39 @@ namespace QuanLySan.ViewModels
 
         private void ThucHienThayDoi()
         {
-            MessageBox.Show("Tính năng cập nhật quy định đang được thiết kế lại để hỗ trợ lưu lịch sử (Versioning) đảm bảo nghiệp vụ điểm tích luỹ.", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+            try
+            {
+                _repo.CapNhatQuyDinh(MucDiemMacDinh, LoaiHoiVienMacDinh, SoTienQuyDoi, DanhSachLoaiHoiVien);
+                MessageBox.Show("Cập nhật quy định thành công!", "Thành công", MessageBoxButton.OK, MessageBoxImage.Information);
+                LoadData(); // reload
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi khi cập nhật quy định: " + ex.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void ThucHienXoa(LoaiHoiVienQuyDinh hang)
+        {
+            if (hang == null) return;
+            
+            try
+            {
+                int soLuongHoiVien = _repo.KiemTraHoiVienDangDungHang(hang.MaLoaiHoiVien);
+                if (soLuongHoiVien > 0)
+                {
+                    MessageBox.Show($"Không thể xóa hạng này vì đang có {soLuongHoiVien} hội viên sử dụng.", "Cảnh báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
+                _repo.XoaLoaiHoiVien(hang.MaLoaiHoiVien);
+                MessageBox.Show("Xóa hạng hội viên thành công!", "Thành công", MessageBoxButton.OK, MessageBoxImage.Information);
+                LoadData();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi khi xóa: " + ex.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
     }
 }

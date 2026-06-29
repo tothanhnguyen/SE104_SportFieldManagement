@@ -48,7 +48,8 @@ CREATE TABLE LOAINGAY (
 CREATE TABLE LOAIHOIVIEN (
     MaLoaiHoiVien CHAR(2) PRIMARY KEY,
     TenLoaiHoiVien NVARCHAR(50) NOT NULL,
-    DiemToiThieu INT DEFAULT 0
+    DiemToiThieu INT DEFAULT 0,
+    MucGiamGia FLOAT DEFAULT 0
 );
 
 -- ═══════════════════════════════════════════════════════
@@ -123,8 +124,8 @@ INSERT INTO ACCOUNT (Username, PasswordHash, Email) VALUES ('admin', 'admin', 'a
 -- Cài đặt Context AccountId=1 cho các Insert tiếp theo
 EXEC sp_set_session_context @key=N'AccountId', @value=1;
 
-INSERT INTO LOAIHOIVIEN (MaLoaiHoiVien, TenLoaiHoiVien, DiemToiThieu) VALUES
-('DO', N'Đồng', 0), ('BA', N'Bạc', 100), ('VA', N'Vàng', 200), ('KC', N'Kim cương', 300);
+INSERT INTO LOAIHOIVIEN (MaLoaiHoiVien, TenLoaiHoiVien, DiemToiThieu, MucGiamGia) VALUES
+('DO', N'Đồng', 0, 0), ('BA', N'Bạc', 100, 0.03), ('VA', N'Vàng', 200, 0.05), ('KC', N'Kim cương', 300, 0.10);
 
 INSERT INTO LOAISAN (MaLoaiSan, TenLoaiSan) VALUES 
 ('BD', N'Sân bóng đá'), ('CL', N'Sân cầu lông'), ('PB', N'Sân pickleball');
