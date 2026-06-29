@@ -21,10 +21,25 @@ namespace QuanLySan.ViewModels
         public ObservableCollection<DoanhThuKhachHangItem> KetQua { get; } = new();
 
         private int _nam;
-        public int Nam { get => _nam; set { _nam = value; OnPropertyChanged(); } }
+        public int Nam 
+        { 
+            get => _nam; 
+            set 
+            { 
+                if (_nam != value)
+                {
+                    _nam = value; 
+                    OnPropertyChanged(); 
+                    UpdateDsThang();
+                }
+            } 
+        }
 
         private int _thang;
         public int Thang { get => _thang; set { _thang = value; OnPropertyChanged(); } }
+
+        private DateTime _minDate;
+        private DateTime _maxDate;
 
         private string _tongDoanhThuText = "0 đ";
         public string TongDoanhThuText { get => _tongDoanhThuText; set { _tongDoanhThuText = value; OnPropertyChanged(); } }
@@ -38,13 +53,35 @@ namespace QuanLySan.ViewModels
             _dialog = dialog;
             _repo = repo;
 
-            var now = DateTime.Now;
-            for (int y = now.Year; y >= now.Year - 5; y--) DsNam.Add(y);
-            for (int m = 1; m <= 12; m++) DsThang.Add(m);
-            Nam = now.Year;
-            Thang = now.Month;
+            var dates = _repo.GetMinMaxReportDate();
+            _minDate = dates.MinDate;
+            _maxDate = dates.MaxDate;
+
+            for (int y = _minDate.Year; y <= _maxDate.Year; y++) 
+            {
+                DsNam.Add(y);
+            }
+            
+            // Set default Nam to maxDate.Year, which triggers UpdateDsThang()
+            Nam = _maxDate.Year;
+            Thang = _maxDate.Month;
 
             BaoCaoCommand = new RelayCommand(_ => LapBaoCao());
+        }
+
+        private void UpdateDsThang()
+        {
+            DsThang.Clear();
+            int startMonth = (Nam == _minDate.Year) ? _minDate.Month : 1;
+            int endMonth = (Nam == _maxDate.Year) ? _maxDate.Month : 12;
+
+            for (int m = startMonth; m <= endMonth; m++)
+            {
+                DsThang.Add(m);
+            }
+
+            if (Thang < startMonth) Thang = startMonth;
+            if (Thang > endMonth) Thang = endMonth;
         }
 
         private void LapBaoCao()

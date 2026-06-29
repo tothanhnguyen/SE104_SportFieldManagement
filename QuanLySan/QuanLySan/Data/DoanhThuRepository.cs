@@ -12,6 +12,38 @@ namespace QuanLySan.Data
     {
         private readonly string _connectionString = DatabaseConfig.ConnectionString;
 
+        // Lấy khoảng thời gian hợp lệ cho báo cáo (Từ ngày đăng ký sớm nhất hoặc ngày đặt sân sớm nhất đến hiện tại)
+        public (DateTime MinDate, DateTime MaxDate) GetMinMaxReportDate()
+        {
+            const string sql = @"
+                SELECT 
+                    MIN(MinDate) AS EarliestDate
+                FROM (
+                    SELECT MIN(NgayDangKyHoiVien) AS MinDate FROM HOIVIEN
+                    UNION ALL
+                    SELECT MIN(NgayDat) AS MinDate FROM DATSAN
+                ) AS T";
+            
+            DateTime minDate = DateTime.Now;
+            try
+            {
+                using var conn = new SqlConnection(_connectionString);
+                DbHelper.OpenConnection(conn);
+                using var cmd = new SqlCommand(sql, conn);
+                var result = cmd.ExecuteScalar();
+                if (result != DBNull.Value && result != null)
+                {
+                    minDate = Convert.ToDateTime(result);
+                }
+            }
+            catch { /* Ignore and fallback to Now */ }
+            
+            // Nếu minDate > Now (do dữ liệu fake tương lai), fallback
+            if (minDate > DateTime.Now) minDate = DateTime.Now;
+            
+            return (minDate, DateTime.Now);
+        }
+
         // BM6.1: Doanh thu theo sân. Trả về tất cả sân, kèm doanh thu & tỷ lệ lấp đầy khung giờ trong tháng.
         // Tỷ lệ lấp đầy = số khung giờ riêng biệt đã đặt / tổng số khung giờ của sân × 100%.
         public List<DoanhThuSanItem> BaoCaoTheoSan(int thang, int nam)

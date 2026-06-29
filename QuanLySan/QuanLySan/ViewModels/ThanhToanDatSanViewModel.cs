@@ -194,7 +194,7 @@ namespace QuanLySan.ViewModels
 
                 _repo.CapNhatDiemVaHang(MaHoiVienSelected, tongDiemMoi, maHangMoi);
 
-                _dialog.ThongBao($"Thanh toán thành công phiếu {MaPhieuDatSelected}!\nBạn đã được cộng {diemCongThem} điểm tích lũy.", "Thành công");
+                _dialog.ThongBao($"Thanh toán thành công phiếu {MaPhieuDatSelected}!\n{TenHoiVien} đã được cộng {diemCongThem} điểm tích lũy.", "Thành công");
                 ThucHienHuy();
             }
             catch (Exception ex)
