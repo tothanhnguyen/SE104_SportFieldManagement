@@ -45,16 +45,39 @@ namespace QuanLySan.Data
             );
         }
 
-        // Họ tên + mã loại hội viên (dùng để tính giảm giá theo hạng). Null nếu không tìm thấy.
-        public (string HoTen, string MaLoaiHoiVien)? LayThongTinHoiVien(string maHoiVien)
+        // Họ tên + mã loại hội viên + điểm tích lũy (dùng để tính giảm giá và cộng điểm). Null nếu không tìm thấy.
+        public (string HoTen, string MaLoaiHoiVien, int DiemTichLuy)? LayThongTinHoiVien(string maHoiVien)
         {
             using var conn = new SqlConnection(_connectionString);
             DbHelper.OpenConnection(conn);
-            using var cmd = new SqlCommand("SELECT HoTen, MaLoaiHoiVien FROM HOIVIEN WHERE MaHoiVien = @Ma", conn);
+            using var cmd = new SqlCommand("SELECT HoTen, MaLoaiHoiVien, ISNULL(DiemTichLuy, 0) AS DiemTichLuy FROM HOIVien WHERE MaHoiVien = @Ma", conn);
             cmd.Parameters.AddWithValue("@Ma", maHoiVien);
             using var reader = cmd.ExecuteReader();
             if (!reader.Read()) return null;
-            return (reader["HoTen"]?.ToString() ?? "", reader["MaLoaiHoiVien"]?.ToString() ?? "");
+            return (
+                reader["HoTen"]?.ToString() ?? "", 
+                reader["MaLoaiHoiVien"]?.ToString() ?? "",
+                Convert.ToInt32(reader["DiemTichLuy"])
+            );
+        }
+
+        // Lấy danh sách hạng hội viên, sắp xếp DiemToiThieu DESC (để tính thăng hạng - Lazy Evaluation)
+        public List<(string MaLoai, int DiemToiThieu, decimal MucGiamGia)> LayDanhSachHangHoiVien()
+        {
+            var ds = new List<(string, int, decimal)>();
+            using var conn = new SqlConnection(_connectionString);
+            DbHelper.OpenConnection(conn);
+            using var cmd = new SqlCommand("SELECT MaLoaiHoiVien, DiemToiThieu, ISNULL(MucGiamGia, 0) AS MucGiamGia FROM LOAIHOIVIEN ORDER BY DiemToiThieu DESC", conn);
+            using var reader = cmd.ExecuteReader();
+            while (reader.Read())
+            {
+                ds.Add((
+                    reader["MaLoaiHoiVien"]?.ToString() ?? "",
+                    Convert.ToInt32(reader["DiemToiThieu"]),
+                    Convert.ToDecimal(reader["MucGiamGia"])
+                ));
+            }
+            return ds;
         }
 
         // Danh sách mã hội viên (đổ vào ComboBox).
@@ -79,14 +102,15 @@ namespace QuanLySan.Data
             return (result != null && result != DBNull.Value) ? Convert.ToDouble(result) : 100000;
         }
 
-        // Cộng điểm tích lũy cho hội viên sau khi thanh toán.
-        public void CongDiem(string maHoiVien, int diem)
+        // Lưu điểm mới và cập nhật hạng hội viên sau khi thanh toán.
+        public void CapNhatDiemVaHang(string maHoiVien, int tongDiemMoi, string maHangMoi)
         {
             using var conn = new SqlConnection(_connectionString);
             DbHelper.OpenConnection(conn);
             using var cmd = new SqlCommand(
-                "UPDATE HOIVIEN SET DiemTichLuy = ISNULL(DiemTichLuy, 0) + @Diem WHERE MaHoiVien = @Ma", conn);
-            cmd.Parameters.AddWithValue("@Diem", diem);
+                "UPDATE HOIVIEN SET DiemTichLuy = @Diem, MaLoaiHoiVien = @MaLoai WHERE MaHoiVien = @Ma", conn);
+            cmd.Parameters.AddWithValue("@Diem", tongDiemMoi);
+            cmd.Parameters.AddWithValue("@MaLoai", string.IsNullOrEmpty(maHangMoi) ? DBNull.Value : maHangMoi);
             cmd.Parameters.AddWithValue("@Ma", maHoiVien);
             cmd.ExecuteNonQuery();
         }

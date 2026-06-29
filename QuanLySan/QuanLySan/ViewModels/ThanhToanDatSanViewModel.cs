@@ -21,15 +21,11 @@ namespace QuanLySan.ViewModels
         private readonly ThanhToanRepository _repo;
         private readonly double _heSoTichDiem;
 
-        // Tỷ lệ giảm giá theo mã loại hội viên (Quy định 5).
-        private static readonly Dictionary<string, decimal> _tyLeGiam = new()
-        {
-            ["BA"] = 0.03m, // Bạc
-            ["VA"] = 0.05m, // Vàng
-            ["KC"] = 0.10m, // Kim cương
-        };
+        // Danh sách hạng hội viên, load một lần để tính giảm giá và xét thăng hạng
+        private List<(string MaLoai, int DiemToiThieu, decimal MucGiamGia)> _dsHangHoiVien = new();
 
         private string _maLoaiHoiVien = ""; // hạng hội viên đang chọn (để tính giảm giá)
+        private int _diemHienTai = 0; // điểm tích lũy hiện tại của hội viên
 
         // ── Danh sách hiển thị ──
         public ObservableCollection<string> DsMaPhieuDat { get; } = new();
@@ -82,6 +78,9 @@ namespace QuanLySan.ViewModels
 
             try { _heSoTichDiem = _repo.LayHeSoTichDiem(); }
             catch { _heSoTichDiem = 100000; }
+
+            try { _dsHangHoiVien = _repo.LayDanhSachHangHoiVien(); }
+            catch { _dsHangHoiVien = new(); }
 
             LoadDanhMuc();
             NgayThanhToan = DateTime.Now;
@@ -139,6 +138,7 @@ namespace QuanLySan.ViewModels
                 var hv = _repo.LayThongTinHoiVien(MaHoiVienSelected);
                 TenHoiVien = hv?.HoTen ?? "";
                 _maLoaiHoiVien = hv?.MaLoaiHoiVien ?? "";
+                _diemHienTai = hv?.DiemTichLuy ?? 0;
                 TinhTien();
             }
             catch (Exception ex)
@@ -152,8 +152,17 @@ namespace QuanLySan.ViewModels
         // Giảm giá theo hạng + số tiền phải trả.
         private void TinhTien()
         {
-            decimal tyLe = _tyLeGiam.TryGetValue(_maLoaiHoiVien, out var r) ? r : 0m;
-            GiamGia = Math.Round(TongTien * tyLe);
+            decimal tyLe = 0;
+            foreach (var hang in _dsHangHoiVien)
+            {
+                if (hang.MaLoai == _maLoaiHoiVien)
+                {
+                    tyLe = hang.MucGiamGia;
+                    break;
+                }
+            }
+
+            GiamGia = TongTien * tyLe;
             SoTienPhaiTra = TongTien - GiamGia;
         }
 
@@ -168,17 +177,24 @@ namespace QuanLySan.ViewModels
 
             try
             {
-                // Tích điểm: floor(Số tiền phải trả / Hệ số tích điểm)
-                int diem = _heSoTichDiem > 0 ? (int)Math.Floor(SoTienPhaiTra / (decimal)_heSoTichDiem) : 0;
-                if (diem > 0) _repo.CongDiem(MaHoiVienSelected, diem);
+                // 3. Tính điểm cộng thêm = Số tiền phải trả / Hệ số tích điểm
+                int diemCongThem = (int)(SoTienPhaiTra / (decimal)_heSoTichDiem);
+                int tongDiemMoi = _diemHienTai + diemCongThem;
 
-                _dialog.ThongBao(
-                    $"Thanh toán thành công!\n" +
-                    $"Mã phiếu: {MaPhieuDatSelected}\n" +
-                    $"Giảm giá: {GiamGia:N0} VNĐ\n" +
-                    $"Số tiền phải trả: {SoTienPhaiTra:N0} VNĐ\n" +
-                    $"Điểm tích lũy được cộng: {diem}",
-                    "Thành công");
+                // 4. Thăng hạng (Lazy Evaluation)
+                string maHangMoi = _maLoaiHoiVien;
+                foreach (var hang in _dsHangHoiVien)
+                {
+                    if (tongDiemMoi >= hang.DiemToiThieu)
+                    {
+                        maHangMoi = hang.MaLoai;
+                        break;
+                    }
+                }
+
+                _repo.CapNhatDiemVaHang(MaHoiVienSelected, tongDiemMoi, maHangMoi);
+
+                _dialog.ThongBao($"Thanh toán thành công phiếu {MaPhieuDatSelected}!\nBạn đã được cộng {diemCongThem} điểm tích lũy.", "Thành công");
                 ThucHienHuy();
             }
             catch (Exception ex)
