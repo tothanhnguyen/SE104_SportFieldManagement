@@ -48,7 +48,19 @@ namespace QuanLySan.ViewModels
             ThayDoiCommand = new RelayCommand(_ => ThucHienThayDoi());
             ThemCommand = new RelayCommand(_ =>
             {
-                MessageBox.Show("Tính năng thêm loại hội viên sẽ được cập nhật trong sprint tiếp theo.", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+                // Generate a 2-character random string for MaLoaiHoiVien
+                string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+                var random = new Random();
+                string ma = chars[random.Next(chars.Length)].ToString() + chars[random.Next(chars.Length)].ToString();
+                
+                DanhSachLoaiHoiVien.Add(new LoaiHoiVienQuyDinh
+                {
+                    STT = DanhSachLoaiHoiVien.Count + 1,
+                    MaLoaiHoiVien = ma,
+                    TenHang = "Tên hạng mới",
+                    MucDiemToiThieu = 0,
+                    MucGiamGia = 0m
+                });
             });
             XoaCommand = new RelayCommand(param => ThucHienXoa(param as LoaiHoiVienQuyDinh));
         }
@@ -58,16 +70,17 @@ namespace QuanLySan.ViewModels
             try
             {
                 var thamSo = _repo.LoadThamSoHethong();
-                MucDiemMacDinh = thamSo.MucDiemMacDinh;
-                LoaiHoiVienMacDinh = thamSo.LoaiHoiVienMacDinh;
-                SoTienQuyDoi = thamSo.SoTienQuyDoi;
-
                 var ds = _repo.LoadDanhSachLoaiHoiVien();
+                
                 DanhSachLoaiHoiVien.Clear();
                 foreach (var item in ds)
                 {
                     DanhSachLoaiHoiVien.Add(item);
                 }
+
+                MucDiemMacDinh = thamSo.MucDiemMacDinh;
+                LoaiHoiVienMacDinh = thamSo.LoaiHoiVienMacDinh;
+                SoTienQuyDoi = thamSo.SoTienQuyDoi;
             }
             catch (Exception ex)
             {

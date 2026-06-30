@@ -99,8 +99,17 @@ namespace QuanLySan.Data
 
                 foreach (var hang in dsHang)
                 {
-                    string sqlHang = "UPDATE LOAIHOIVIEN SET DiemToiThieu = @Diem, MucGiamGia = @MucGiam WHERE MaLoaiHoiVien = @Ma";
+                    string sqlHang = @"
+                        IF EXISTS (SELECT 1 FROM LOAIHOIVIEN WHERE MaLoaiHoiVien = @Ma)
+                        BEGIN
+                            UPDATE LOAIHOIVIEN SET TenLoaiHoiVien = @TenHang, DiemToiThieu = @Diem, MucGiamGia = @MucGiam WHERE MaLoaiHoiVien = @Ma
+                        END
+                        ELSE
+                        BEGIN
+                            INSERT INTO LOAIHOIVIEN (MaLoaiHoiVien, TenLoaiHoiVien, DiemToiThieu, MucGiamGia) VALUES (@Ma, @TenHang, @Diem, @MucGiam)
+                        END";
                     using var cmd = new SqlCommand(sqlHang, conn, trans);
+                    cmd.Parameters.AddWithValue("@TenHang", hang.TenHang);
                     cmd.Parameters.AddWithValue("@Diem", hang.MucDiemToiThieu);
                     cmd.Parameters.AddWithValue("@MucGiam", hang.MucGiamGia);
                     cmd.Parameters.AddWithValue("@Ma", hang.MaLoaiHoiVien);
