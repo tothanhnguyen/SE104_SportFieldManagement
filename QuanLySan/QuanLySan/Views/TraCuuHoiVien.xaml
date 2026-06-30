@@ -235,14 +235,14 @@
                         <TextBlock Text="Ngày đăng ký" VerticalAlignment="Center" Margin="0,0,8,0"
                                    FontWeight="SemiBold" FontStyle="Italic"/>
                         <TextBlock Text="từ" Foreground="Red" VerticalAlignment="Center" Margin="0,0,5,0"/>
-                        <TextBox Width="100" Height="28"
-                                 Text="{Binding NgayTu, UpdateSourceTrigger=PropertyChanged}"
-                                 VerticalContentAlignment="Center" Padding="6,4"
+                        <DatePicker Width="120" Height="28"
+                                 SelectedDate="{Binding NgayTu, UpdateSourceTrigger=PropertyChanged}"
+                                 VerticalContentAlignment="Center"
                                  BorderBrush="{StaticResource InputBorder}" BorderThickness="1"/>
                         <TextBlock Text="đến" Foreground="Red" VerticalAlignment="Center" Margin="10,0,5,0"/>
-                        <TextBox Width="100" Height="28"
-                                 Text="{Binding NgayDen, UpdateSourceTrigger=PropertyChanged}"
-                                 VerticalContentAlignment="Center" Padding="6,4"
+                        <DatePicker Width="120" Height="28"
+                                 SelectedDate="{Binding NgayDen, UpdateSourceTrigger=PropertyChanged}"
+                                 VerticalContentAlignment="Center"
                                  BorderBrush="{StaticResource InputBorder}" BorderThickness="1"/>
                     </StackPanel>
 

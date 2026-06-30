@@ -48,11 +48,11 @@ namespace QuanLySan.ViewModels
         private string _diemDen = "";
         public string DiemDen { get => _diemDen; set { _diemDen = value; OnPropertyChanged(); } }
 
-        private string _ngayTu = "";
-        public string NgayTu { get => _ngayTu; set { _ngayTu = value; OnPropertyChanged(); } }
+        private DateTime? _ngayTu;
+        public DateTime? NgayTu { get => _ngayTu; set { _ngayTu = value; OnPropertyChanged(); } }
 
-        private string _ngayDen = "";
-        public string NgayDen { get => _ngayDen; set { _ngayDen = value; OnPropertyChanged(); } }
+        private DateTime? _ngayDen;
+        public DateTime? NgayDen { get => _ngayDen; set { _ngayDen = value; OnPropertyChanged(); } }
 
         // ── Danh sách hiển thị ──
         public ObservableCollection<string> DsGioiTinh { get; } = new() { TAT_CA, "Nam", "Nữ" };
@@ -104,7 +104,7 @@ namespace QuanLySan.ViewModels
             MaHoiVien = ""; HoTen = ""; SDT = ""; Email = ""; GhiChu = "";
             GioiTinhSelected = TAT_CA;
             LoaiHoiVienSelected = TAT_CA;
-            DiemTu = ""; DiemDen = ""; NgayTu = ""; NgayDen = "";
+            DiemTu = ""; DiemDen = ""; NgayTu = null; NgayDen = null;
             NapKetQua(new HoiVienFilter());
         }
 
@@ -133,20 +133,7 @@ namespace QuanLySan.ViewModels
             }
 
             // ===== Validate ngày đăng ký =====
-            DateTime? ngayTu = null, ngayDen = null;
-            string ngayTuText = NgayTu.Trim(), ngayDenText = NgayDen.Trim();
-
-            if (ngayTuText != "")
-            {
-                if (!DateTime.TryParse(ngayTuText, out DateTime nt)) { _dialog.CanhBao("Ngày đăng ký (từ) không đúng định dạng.\nVui lòng nhập theo dạng dd/MM/yyyy.", "Cảnh báo"); return; }
-                ngayTu = nt;
-            }
-            if (ngayDenText != "")
-            {
-                if (!DateTime.TryParse(ngayDenText, out DateTime nd)) { _dialog.CanhBao("Ngày đăng ký (đến) không đúng định dạng.\nVui lòng nhập theo dạng dd/MM/yyyy.", "Cảnh báo"); return; }
-                ngayDen = nd;
-            }
-            if (ngayTu.HasValue && ngayDen.HasValue && ngayTu.Value > ngayDen.Value)
+            if (NgayTu.HasValue && NgayDen.HasValue && NgayTu.Value > NgayDen.Value)
             {
                 _dialog.CanhBao("Ngày đăng ký (từ) phải nhỏ hơn hoặc bằng Ngày đăng ký (đến).", "Cảnh báo");
                 return;
@@ -154,17 +141,17 @@ namespace QuanLySan.ViewModels
 
             var filter = new HoiVienFilter
             {
-                MaHoiVien = MaHoiVien,
-                HoTen = HoTen,
-                SDT = SDT,
-                Email = Email,
-                GhiChu = GhiChu,
+                MaHoiVien = MaHoiVien.Trim(),
+                HoTen = HoTen.Trim(),
+                SDT = SDT.Trim(),
+                Email = Email.Trim(),
+                GhiChu = GhiChu.Trim(),
                 GioiTinh = GioiTinhSelected == TAT_CA ? null : GioiTinhSelected,
                 TenLoaiHoiVien = LoaiHoiVienSelected == TAT_CA ? null : LoaiHoiVienSelected,
                 DiemTu = diemTu,
                 DiemDen = diemDen,
-                NgayTu = ngayTu,
-                NgayDen = ngayDen
+                NgayTu = NgayTu,
+                NgayDen = NgayDen
             };
             NapKetQua(filter);
         }
