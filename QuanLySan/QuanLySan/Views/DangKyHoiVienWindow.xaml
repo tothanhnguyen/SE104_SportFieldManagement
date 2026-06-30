@@ -186,7 +186,7 @@
                         <StackPanel Grid.Column="0">
                             <TextBlock Text="Ngày đăng ký" Style="{StaticResource FieldLabel}"/>
                             <DatePicker SelectedDate="{Binding NgayDangKy}" Style="{StaticResource PlaceholderDatePicker}" 
-                                        Tag="&lt; Ngày hiện hành &gt;" IsHitTestVisible="False" Focusable="False"/>
+                                        Tag="&lt; Ngày hiện hành &gt;"/>
                         </StackPanel>
 
                         <StackPanel Grid.Column="2">
