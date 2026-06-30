@@ -1,5 +1,6 @@
 using System.Windows;
 using QuanLySan.ViewModels;
+using FontAwesome.Sharp;
 
 namespace QuanLySan.Views
 {
@@ -8,6 +9,11 @@ namespace QuanLySan.Views
         public LoginWindow()
         {
             InitializeComponent();
+            
+            // Đặt icon cho cửa sổ và taskbar
+            var iconBrush = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#1B2A4A"));
+            this.Icon = FontAwesome.Sharp.IconChar.Futbol.ToImageSource(iconBrush, 256);
+            
             var vm = new LoginViewModel();
             vm.CloseAction = () =>
             {

@@ -129,12 +129,55 @@
 
                 <!-- Main Action Button -->
                 <Button Command="{Binding SubmitCommand}" Background="{StaticResource PrimaryBrush}" Foreground="White" 
-                        Height="45" FontSize="16" FontWeight="Bold" Cursor="Hand" BorderThickness="0">
+                        Height="45" FontSize="16" FontWeight="Bold" Cursor="Hand" BorderThickness="0" IsDefault="True">
                     <Button.Template>
                         <ControlTemplate TargetType="Button">
-                            <Border Background="{TemplateBinding Background}" CornerRadius="5">
+                            <Border x:Name="border" Background="{TemplateBinding Background}" CornerRadius="5" RenderTransformOrigin="0.5,0.5">
+                                <Border.RenderTransform>
+                                    <ScaleTransform x:Name="scaleTrans" ScaleX="1" ScaleY="1"/>
+                                </Border.RenderTransform>
                                 <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Border>
+                            <ControlTemplate.Triggers>
+                                <!-- Hover Effect -->
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="border" Property="Background" Value="{StaticResource AccentBrush}"/>
+                                    <Setter TargetName="border" Property="Effect">
+                                        <Setter.Value>
+                                            <DropShadowEffect BlurRadius="10" ShadowDepth="2" Opacity="0.25" Color="#1B2A4A"/>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Trigger>
+                                <!-- Pressed Effect -->
+                                <Trigger Property="IsPressed" Value="True">
+                                    <Setter TargetName="border" Property="Background" Value="#111B30"/>
+                                    <Setter TargetName="border" Property="Effect" Value="{x:Null}"/>
+                                    <Trigger.EnterActions>
+                                        <BeginStoryboard>
+                                            <Storyboard>
+                                                <DoubleAnimation Storyboard.TargetName="scaleTrans" Storyboard.TargetProperty="ScaleX" To="0.96" Duration="0:0:0.05" />
+                                                <DoubleAnimation Storyboard.TargetName="scaleTrans" Storyboard.TargetProperty="ScaleY" To="0.96" Duration="0:0:0.05" />
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </Trigger.EnterActions>
+                                    <Trigger.ExitActions>
+                                        <BeginStoryboard>
+                                            <Storyboard>
+                                                <DoubleAnimation Storyboard.TargetName="scaleTrans" Storyboard.TargetProperty="ScaleX" To="1" Duration="0:0:0.2">
+                                                    <DoubleAnimation.EasingFunction>
+                                                        <CircleEase EasingMode="EaseOut"/>
+                                                    </DoubleAnimation.EasingFunction>
+                                                </DoubleAnimation>
+                                                <DoubleAnimation Storyboard.TargetName="scaleTrans" Storyboard.TargetProperty="ScaleY" To="1" Duration="0:0:0.2">
+                                                    <DoubleAnimation.EasingFunction>
+                                                        <CircleEase EasingMode="EaseOut"/>
+                                                    </DoubleAnimation.EasingFunction>
+                                                </DoubleAnimation>
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </Trigger.ExitActions>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
                         </ControlTemplate>
                     </Button.Template>
                     <Button.Style>
@@ -164,14 +207,26 @@
                         </TextBlock.Style>
                     </TextBlock>
                     <Button Command="{Binding ToggleModeCommand}" Background="Transparent" BorderThickness="0" Cursor="Hand">
-                        <TextBlock Foreground="{StaticResource AccentBrush}" FontWeight="Bold">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border Background="Transparent">
+                                    <ContentPresenter />
+                                </Border>
+                            </ControlTemplate>
+                        </Button.Template>
+                        <TextBlock FontWeight="Bold">
                             <TextBlock.Style>
                                 <Style TargetType="TextBlock">
                                     <Setter Property="Text" Value="Đăng nhập ngay"/>
+                                    <Setter Property="Foreground" Value="{StaticResource AccentBrush}"/>
                                     <Style.Triggers>
                                         <DataTrigger Binding="{Binding IsLoginMode}" Value="True">
                                             <Setter Property="Text" Value="Đăng ký tài khoản mới"/>
                                         </DataTrigger>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter Property="Foreground" Value="#111B30"/>
+                                            <Setter Property="TextDecorations" Value="Underline"/>
+                                        </Trigger>
                                     </Style.Triggers>
                                 </Style>
                             </TextBlock.Style>
